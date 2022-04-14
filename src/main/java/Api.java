@@ -32,16 +32,16 @@ public class Api {
         if (success) {
             return true;
         }
-        if ("您的访问已过期".equals(object.getStr("message"))) {
+        if ("您的访问已过期".equals(object.getStr("msg"))) {
             System.err.println("用户信息失效，请确保UserConfig参数准确，并且微信上的叮咚小程序不能退出登录");
-            Application.map.put("end", new HashMap<>());
+//            Application.map.put("end", new HashMap<>());
             return false;
         }
         String msg = null;
         try {
             msg = object.getStr("msg");
             if (msg == null || "".equals(msg)) {
-                msg = object.getJSONObject("tips").getStr("limitMsg");
+//                msg = object.getJSONObject("tips").getStr("limitMsg");
             }
         } catch (Exception ignored) {
 
@@ -50,286 +50,113 @@ public class Api {
         return false;
     }
 
-
     /**
-     * 获取有效的默认收货地址id
-     *
-     * @return 收货地址id
+     * 获取配送时间
+     * @return
      */
-    public static String getAddressId() {
-        boolean noAddress = false;
+    public static Map<String, Object> getCapacityData() {
         try {
-            System.out.println("开始获取收货人信息");
-            HttpRequest httpRequest = HttpUtil.createGet("https://sunquan.api.ddxq.mobi/api/v1/user/address/");
+            HttpRequest httpRequest = HttpUtil.createPost("https://api-sams.walmartmobile.cn/api/v1/sams/delivery/portal/getCapacityData");
             httpRequest.addHeaders(UserConfig.getHeaders());
-            httpRequest.formStr(UserConfig.getBody());
-
-            String body = httpRequest.execute().body();
-            JSONObject object = JSONUtil.parseObj(body);
-            if (!isSuccess(object, "获取默认收货地址")) {
-                return null;
+            Map<String, Object> request = new HashMap<>();
+            List<String> date = new ArrayList();
+            for(int j = 0; j < 7; j++){
+                date.add("2022-04-"+ (14+j));
             }
-            JSONArray validAddress = object.getJSONObject("data").getJSONArray("valid_address");
-            System.out.println("获取可用的收货地址条数：" + validAddress.size());
-            for (int i = 0; i < validAddress.size(); i++) {
-                JSONObject address = validAddress.getJSONObject(i);
-                if (address.getBool("is_default")) {
-                    System.out.println("请仔细核对站点和收货地址信息 站点信息配置错误将导致无法下单");
-                    System.out.println("1.获取默认收货地址成功：" + address.getStr("addr_detail") + " 手机号：" + address.getStr("mobile"));
-                    System.out.println("2.该地址对应站点名称为：" + address.getJSONObject("station_info").get("name"));
-                    System.out.println("3.确认站点id是否和UserInfo headers中ddmc-station-id还有body中station_id一致 如果不一致则修改为输出的这个station id：" + address.getJSONObject("station_info").get("id"));
-                    System.out.println("正在执行代码校验station id是否准确");
-                    String stationId = address.getJSONObject("station_info").getStr("id");
-                    boolean stationsIdSuccess = true;
-                    if (!UserConfig.getHeaders().get("ddmc-station-id").equals(stationId)) {
-                        System.err.println("headers中ddmc-station-id不匹配当前收货地址站点id");
-                        stationsIdSuccess = false;
-                    }
-                    if (!UserConfig.getBody().get("station_id").equals(stationId)) {
-                        System.err.println("body中station_id不匹配当前收货地址站点id");
-                        stationsIdSuccess = false;
-                    }
-                    if (stationsIdSuccess) {
-                        System.out.println("站点id配置正常");
-                    }
-                    return address.getStr("id");
-                }
-            }
-            noAddress = true;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        if (noAddress) {
-            System.err.println("没有可用的默认收货地址，请自行登录叮咚设置该站点可用的默认收货地址");
-            Application.map.put("end", new HashMap<>());
-        }
-        return null;
-    }
-
-
-    /**
-     * 全选按钮
-     */
-    public static void allCheck() {
-        try {
-            HttpRequest httpRequest = HttpUtil.createGet("https://maicai.api.ddxq.mobi/cart/allCheck");
-            httpRequest.addHeaders(UserConfig.getHeaders());
-            Map<String, String> request = UserConfig.getBody();
-            request.put("is_check", "1");
-            httpRequest.formStr(request);
-
-            String body = httpRequest.execute().body();
-            JSONObject object = JSONUtil.parseObj(body);
-
-            if (!isSuccess(object, "勾选购物车全选按钮")) {
-                return;
-            }
-            System.out.println("勾选购物车全选按钮成功");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * 获取购物车信息
-     *
-     * @return 购物车信息
-     */
-    public static Map<String, Object> getCart() {
-        boolean noProducts = false;
-        try {
-            HttpRequest httpRequest = HttpUtil.createGet("https://maicai.api.ddxq.mobi/cart/index");
-            httpRequest.addHeaders(UserConfig.getHeaders());
-            Map<String, String> request = UserConfig.getBody();
-            request.put("is_load", "1");
-            httpRequest.formStr(request);
-
-            String body = httpRequest.execute().body();
-            JSONObject object = JSONUtil.parseObj(body);
-
-            if (!isSuccess(object, "更新购物车数据")) {
-                return null;
-            }
-
-            JSONObject data = object.getJSONObject("data");
-
-            if (data.getJSONArray("new_order_product_list").size() == 0) {
-                noProducts = true;
-            } else {
-                JSONObject newOrderProduct = data.getJSONArray("new_order_product_list").getJSONObject(0);
-                JSONArray products = newOrderProduct.getJSONArray("products");
-
-                Map<String, Object> map = new HashMap<>();
-                for (int i = 0; i < products.size(); i++) {
-                    JSONObject product = products.getJSONObject(i);
-                    product.set("total_money", product.get("total_price"));
-                    product.set("total_origin_money", product.get("total_origin_price"));
-                }
-                map.put("products", products);
-                map.put("parent_order_sign", data.getJSONObject("parent_order_info").get("parent_order_sign"));
-                map.put("total_money", newOrderProduct.get("total_money"));
-                map.put("total_origin_money", newOrderProduct.get("total_origin_money"));
-                map.put("goods_real_money", newOrderProduct.get("goods_real_money"));
-                map.put("total_count", newOrderProduct.get("total_count"));
-                map.put("cart_count", newOrderProduct.get("cart_count"));
-                map.put("is_presale", newOrderProduct.get("is_presale"));
-                map.put("instant_rebate_money", newOrderProduct.get("instant_rebate_money"));
-                map.put("coupon_rebate_money", newOrderProduct.get("coupon_rebate_money"));
-                map.put("total_rebate_money", newOrderProduct.get("total_rebate_money"));
-                map.put("used_balance_money", newOrderProduct.get("used_balance_money"));
-                map.put("can_used_balance_money", newOrderProduct.get("can_used_balance_money"));
-                map.put("used_point_num", newOrderProduct.get("used_point_num"));
-                map.put("used_point_money", newOrderProduct.get("used_point_money"));
-                map.put("can_used_point_num", newOrderProduct.get("can_used_point_num"));
-                map.put("can_used_point_money", newOrderProduct.get("can_used_point_money"));
-                map.put("is_share_station", newOrderProduct.get("is_share_station"));
-                map.put("only_today_products", newOrderProduct.get("only_today_products"));
-                map.put("only_tomorrow_products", newOrderProduct.get("only_tomorrow_products"));
-                map.put("package_type", newOrderProduct.get("package_type"));
-                map.put("package_id", newOrderProduct.get("package_id"));
-                map.put("front_package_text", newOrderProduct.get("front_package_text"));
-                map.put("front_package_type", newOrderProduct.get("front_package_type"));
-                map.put("front_package_stock_color", newOrderProduct.get("front_package_stock_color"));
-                map.put("front_package_bg_color", newOrderProduct.get("front_package_bg_color"));
-                System.out.println("更新购物车数据成功");
-                return map;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        if (noProducts) {
-            System.err.println("购物车无可买的商品");
-            Application.map.put("end", new HashMap<>());//这一行是判断是否终止的 如果是捡漏模式 请注释这一行
-        }
-        return null;
-    }
-
-
-    /**
-     * 获取配送信息
-     *
-     * @param addressId 配送地址id
-     * @param cartMap   购物车信息
-     * @return 配送信息
-     */
-    public static Map<String, Object> getMultiReserveTime(String addressId, Map<String, Object> cartMap) {
-        boolean noReserveTime = false;
-        try {
-            HttpRequest httpRequest = HttpUtil.createPost("https://maicai.api.ddxq.mobi/order/getMultiReserveTime");
-            httpRequest.addHeaders(UserConfig.getHeaders());
-            Map<String, Object> request = UserConfig.getBody();
-            request.put("address_id", addressId);
-            request.put("products", "[" + JSONUtil.toJsonStr(cartMap.get("products")) + "]");
-            request.put("group_config_id", "");
-            request.put("isBridge", "false");
-            httpRequest.form(request);
+            request.put("perDateList", date);
+            request.put("storeDeliveryTemplateId", "552578721878546198");
+            request.put("uid", "181816233927");
+            request.put("appId", "wxb344a8513eaaf849");
+            request.put("saasId", "1818");
+            String s = JSONUtil.toJsonStr(request);
+            httpRequest.body(JSONUtil.toJsonStr(request));
             String body = httpRequest.execute().body();
             JSONObject object = JSONUtil.parseObj(body);
             if (!isSuccess(object, "更新配送时间")) {
                 return null;
             }
             Map<String, Object> map = new HashMap<>();
-            JSONArray times = object.getJSONArray("data").getJSONObject(0).getJSONArray("time").getJSONObject(0).getJSONArray("times");
-
-            for (int i = 0; i < times.size(); i++) {
-                JSONObject time = times.getJSONObject(i);
-                if (time.getInt("disableType") == 0 && !time.getStr("select_msg").contains("尽快")) {
-                    map.put("reserved_time_start", time.get("start_timestamp"));
-                    map.put("reserved_time_end", time.get("end_timestamp"));
-                    System.out.println("更新配送时间成功");
-                    return map;
+            Boolean dateCondition = object.getJSONObject("data").getJSONArray("capcityResponseList").getJSONObject(0).getBool("dateISFull");
+            if (dateCondition){
+                System.out.println("【失败】全部配送时间已满");
+            } else {
+                JSONArray times = object.getJSONObject("data").getJSONArray("capcityResponseList").getJSONObject(0).getJSONArray("list");
+                for (int i = 0; i < times.size(); i++) {
+                    JSONObject time = times.getJSONObject(i);
+                    if (!time.getBool("timeISFull")){
+                        map.put("startRealTime",time.get("startRealTime"));
+                        map.put("endRealTime",time.get("endRealTime"));
+                        System.out.println("【成功】更新配送时间");
+                        return map;
+                    }
                 }
             }
-            noReserveTime = true;
         } catch (Exception e) {
             e.printStackTrace();
-        }
-        if (noReserveTime) {
-            System.err.println("无可选的配送时间");
-            Application.map.remove("multiReserveTimeMap");
-            //此处不停止程序 可在开放之前提前执行
         }
         return null;
     }
 
     /**
-     * 获取订单确认信息
-     *
-     * @param addressId           配送地址id
-     * @param cartMap             购物车信息
-     * @param multiReserveTimeMap 配送信息
-     * @return 订单确认信息
+     * 获取购物车信息
+     * @return
      */
-    public static Map<String, Object> getCheckOrder(String addressId, Map<String, Object> cartMap, Map<String, Object> multiReserveTimeMap) {
+    public static List<GoodDto> getCart() {
         try {
-            HttpRequest httpRequest = HttpUtil.createPost("https://maicai.api.ddxq.mobi/order/checkOrder");
+            HttpRequest httpRequest = HttpUtil.createPost("https://api-sams.walmartmobile.cn/api/v1/sams/trade/cart/getUserCart");
             httpRequest.addHeaders(UserConfig.getHeaders());
-            Map<String, Object> request = UserConfig.getBody();
-            request.put("address_id", addressId);
-            request.put("user_ticket_id", "default");
-            request.put("freight_ticket_id", "default");
-            request.put("is_use_point", "0");
-            request.put("is_use_balance", "0");
-            request.put("is_buy_vip", "0");
-            request.put("coupons_id", "");
-            request.put("is_buy_coupons", "0");
-            request.put("check_order_type", "0");
-            request.put("is_support_merge_payment", "1");
-            request.put("showData", "true");
-            request.put("showMsg", "false");
+            Map<String, Object> request = new HashMap<>();
+            List<Map> storeList = new ArrayList();
+            Map<String,Object> store = new HashMap<>();
+            store.put("storeType",2);
+            store.put("storeId","4807");
+            store.put("areaBlockId","300145510512240918");
+            store.put("storeDeliveryTemplateId","552578721878546198");
+            storeList.add(store);
 
-            List<Map<String, Object>> packages = new ArrayList<>();
-            Map<String, Object> packagesMap = new HashMap<>();
-            packagesMap.put("products", cartMap.get("products"));
-            packagesMap.put("total_money", cartMap.get("total_money"));
-            packagesMap.put("total_origin_money", cartMap.get("total_money"));
-            packagesMap.put("goods_real_money", cartMap.get("goods_real_money"));
-            packagesMap.put("total_count", cartMap.get("total_count"));
-            packagesMap.put("cart_count", cartMap.get("cart_count"));
-            packagesMap.put("is_presale", cartMap.get("is_presale"));
-            packagesMap.put("instant_rebate_money", cartMap.get("instant_rebate_money"));
-            packagesMap.put("coupon_rebate_money", cartMap.get("coupon_rebate_money"));
-            packagesMap.put("total_rebate_money", cartMap.get("total_rebate_money"));
-            packagesMap.put("used_balance_money", cartMap.get("used_balance_money"));
-            packagesMap.put("can_used_balance_money", cartMap.get("can_used_balance_money"));
-            packagesMap.put("used_point_num", cartMap.get("used_point_num"));
-            packagesMap.put("used_point_money", cartMap.get("used_point_money"));
-            packagesMap.put("can_used_point_num", cartMap.get("can_used_point_num"));
-            packagesMap.put("can_used_point_money", cartMap.get("can_used_point_money"));
-            packagesMap.put("is_share_station", cartMap.get("is_share_station"));
-            packagesMap.put("only_today_products", cartMap.get("only_today_products"));
-            packagesMap.put("only_tomorrow_products", cartMap.get("only_tomorrow_products"));
-            packagesMap.put("package_type", cartMap.get("package_type"));
-            packagesMap.put("package_id", cartMap.get("package_id"));
-            packagesMap.put("front_package_text", cartMap.get("front_package_text"));
-            packagesMap.put("front_package_type", cartMap.get("front_package_type"));
-            packagesMap.put("front_package_stock_color", cartMap.get("front_package_stock_color"));
-            packagesMap.put("front_package_bg_color", cartMap.get("front_package_bg_color"));
+            Map<String,Object> store2 = new HashMap<>();
+            store2.put("storeType",8);
+            store2.put("storeId","9996");
+            store2.put("areaBlockId","42295");
+            store2.put("storeDeliveryTemplateId","1147161263885953814");
+            storeList.add(store2);
 
-            packagesMap.put("reserved_time", ImmutableMap.of(
-                    "reserved_time_start", multiReserveTimeMap.get("reserved_time_start"), "reserved_time_end", multiReserveTimeMap.get("reserved_time_end")
-            ));
-            packages.add(packagesMap);
-            request.put("packages", JSONUtil.toJsonStr(packages));
-            httpRequest.form(request);
+            Map<String,Object> store3 = new HashMap<>();
+            store3.put("storeType",32);
+            store3.put("storeId","9991");
+            store3.put("areaBlockId","42295");
+            store3.put("storeDeliveryTemplateId","1010425035346829590");
+            storeList.add(store3);
 
+            request.put("storeList", storeList);
+            request.put("uid", "181816233927");
+            request.put("appId", "wxb344a8513eaaf849");
+            request.put("saasId", "1818");
+            httpRequest.body(JSONUtil.toJsonStr(request));
             String body = httpRequest.execute().body();
             JSONObject object = JSONUtil.parseObj(body);
-
-            if (!isSuccess(object, "更新订单确认信息")) {
+            if (!isSuccess(object, "更新购物车")) {
                 return null;
             }
-
-            JSONObject data = object.getJSONObject("data");
-            JSONObject order = data.getJSONObject("order");
-            Map<String, Object> map = new HashMap<>();
-            map.put("freight_discount_money", order.get("freight_discount_money"));
-            map.put("freight_money", order.get("freight_money"));
-            map.put("total_money", order.get("total_money"));
-            map.put("freight_real_money", order.getJSONArray("freights").getJSONObject(0).getJSONObject("freight").get("freight_real_money"));
-            map.put("user_ticket_id", order.getJSONObject("default_coupon").get("_id"));
-            System.out.println("更新订单确认信息成功");
-            return map;
+            Integer selectedNumber = object.getJSONObject("data").getInt("selectedNumber");
+            if (selectedNumber == 0){
+                System.out.println("购物车为空");
+                return null;
+            } else {
+//                JSONArray goods = object.getJSONObject("data").getJSONObject("miniProgramGoodsInfo").getJSONArray("normalGoodsList");
+                JSONArray goods = object.getJSONObject("data").getJSONArray("floorInfoList").getJSONObject(0).getJSONArray("normalGoodsList");
+                List<GoodDto> goodDtos = new ArrayList<>();
+                for (int i = 0; i < goods.size(); i++) {
+                    JSONObject good = goods.getJSONObject(i);
+                    GoodDto goodDto = new GoodDto();
+                    goodDto.setSpuId(good.getStr("spuId"));
+                    goodDto.setQuantity(good.getStr("quantity"));
+                    goodDto.setStoreId(good.getStr("storeId"));
+                    goodDtos.add(goodDto);
+                }
+                System.out.println("【成功】更新购物车");
+                return goodDtos;
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -337,96 +164,69 @@ public class Api {
     }
 
     /**
-     * 提交订单
-     *
-     * @param addressId           配送地址id
-     * @param cartMap             购物车信息
-     * @param multiReserveTimeMap 配送信息
-     * @param checkOrderMap       订单确认信息
+     * 下单
      */
-    public static void addNewOrder(String addressId, Map<String, Object> cartMap, Map<String, Object> multiReserveTimeMap, Map<String, Object> checkOrderMap) {
-        boolean submitSuccess = false;
-        String totalMoney = cartMap.get("total_money") != null ? (String) cartMap.get("total_money") : "";
+    public static void commitPay(List<GoodDto> goods,Map<String, Object> capacityData) {
         try {
-            HttpRequest httpRequest = HttpUtil.createPost("https://maicai.api.ddxq.mobi/order/addNewOrder");
-            httpRequest.addHeaders(UserConfig.getHeaders());
-            Map<String, Object> request = UserConfig.getBody();
-            request.put("showMsg", "false");
-            request.put("showData", "true");
-            request.put("ab_config", "{\"key_onion\":\"C\"}");
+            HttpRequest httpRequest = HttpUtil.createPost("https://api-sams.walmartmobile.cn/api/v1/sams/trade/settlement/commitPay");
 
-            Map<String, Object> packageOrderMap = new HashMap<>();
-            Map<String, Object> paymentOrderMap = new HashMap<>();
-            Map<String, Object> packagesMap = new HashMap<>();
-            packageOrderMap.put("payment_order", paymentOrderMap);
-            packageOrderMap.put("packages", Collections.singletonList(packagesMap));
-            paymentOrderMap.put("reserved_time_start", multiReserveTimeMap.get("reserved_time_start"));
-            paymentOrderMap.put("reserved_time_end", multiReserveTimeMap.get("reserved_time_end"));
-            paymentOrderMap.put("price", checkOrderMap.get("total_money"));
-            paymentOrderMap.put("freight_discount_money", checkOrderMap.get("freight_discount_money"));
-            paymentOrderMap.put("freight_money", checkOrderMap.get("freight_money"));
-            paymentOrderMap.put("order_freight", checkOrderMap.get("freight_real_money"));
-            paymentOrderMap.put("parent_order_sign", cartMap.get("parent_order_sign"));
-            paymentOrderMap.put("product_type", 1);
-            paymentOrderMap.put("address_id", addressId);
-            paymentOrderMap.put("form_id", UUID.randomUUID().toString().replaceAll("-", ""));
-            paymentOrderMap.put("receipt_without_sku", null);
-            paymentOrderMap.put("pay_type", 6);
-            paymentOrderMap.put("user_ticket_id", checkOrderMap.get("user_ticket_id"));
-            paymentOrderMap.put("vip_money", "");
-            paymentOrderMap.put("vip_buy_user_ticket_id", "");
-            paymentOrderMap.put("coupons_money", "");
-            paymentOrderMap.put("coupons_id", "");
-            packagesMap.put("products", cartMap.get("products"));
-            packagesMap.put("total_money", cartMap.get("total_money"));
-            packagesMap.put("total_origin_money", cartMap.get("total_money"));
-            packagesMap.put("goods_real_money", cartMap.get("goods_real_money"));
-            packagesMap.put("total_count", cartMap.get("total_count"));
-            packagesMap.put("cart_count", cartMap.get("cart_count"));
-            packagesMap.put("is_presale", cartMap.get("is_presale"));
-            packagesMap.put("instant_rebate_money", cartMap.get("instant_rebate_money"));
-            packagesMap.put("coupon_rebate_money", cartMap.get("coupon_rebate_money"));
-            packagesMap.put("total_rebate_money", cartMap.get("total_rebate_money"));
-            packagesMap.put("used_balance_money", cartMap.get("used_balance_money"));
-            packagesMap.put("can_used_balance_money", cartMap.get("can_used_balance_money"));
-            packagesMap.put("used_point_num", cartMap.get("used_point_num"));
-            packagesMap.put("used_point_money", cartMap.get("used_point_money"));
-            packagesMap.put("can_used_point_num", cartMap.get("can_used_point_num"));
-            packagesMap.put("can_used_point_money", cartMap.get("can_used_point_money"));
-            packagesMap.put("is_share_station", cartMap.get("is_share_station"));
-            packagesMap.put("only_today_products", cartMap.get("only_today_products"));
-            packagesMap.put("only_tomorrow_products", cartMap.get("only_tomorrow_products"));
-            packagesMap.put("package_type", cartMap.get("package_type"));
-            packagesMap.put("package_id", cartMap.get("package_id"));
-            packagesMap.put("front_package_text", cartMap.get("front_package_text"));
-            packagesMap.put("front_package_type", cartMap.get("front_package_type"));
-            packagesMap.put("front_package_stock_color", cartMap.get("front_package_stock_color"));
-            packagesMap.put("front_package_bg_color", cartMap.get("front_package_bg_color"));
-            packagesMap.put("eta_trace_id", "");
-            packagesMap.put("reserved_time_start", multiReserveTimeMap.get("reserved_time_start"));
-            packagesMap.put("reserved_time_end", multiReserveTimeMap.get("reserved_time_end"));
-            packagesMap.put("soon_arrival", "");
-            packagesMap.put("first_selected_big_time", 0);
-            packagesMap.put("receipt_without_sku", 0);
-            request.put("package_order", JSONUtil.toJsonStr(packageOrderMap));
+            Map<String, String> headers = UserConfig.getHeaders();
+            headers.put("track-info", "[{\"labelType\":\"push_trace\",\"attachId\":\"\"},{\"labelType\":\"systemMessage_trace\",\"attachId\":\"\"},{\"labelType\":\"apppushmsgtaskid_trace\",\"attachId\":\"\"},{\"labelType\":\"systemmsgtasksubid_trace\",\"attachId\":\"\"},{\"labelType\":\"tracking_id\",\"attachId\":\"1649869176133-01DBB03D-BC5C-4C49-896C-F05FC7688BED\"},{\"labelType\":\"tracepromotion\",\"createTime\":\"\",\"attachId\":\"\"}]");
+            httpRequest.addHeaders(headers);
 
-            httpRequest.form(request);
+            Map<String, Object> request = new HashMap<>();
+            request.put("goodsList", goods);
+            request.put("invoiceInfo",new HashMap<>());
+            request.put("cartDeliveryType",2);
+            request.put("floorId",1);
+            request.put("amount","13880");
+            request.put("purchaserName","");
+            Map<String, Object> settleDeliveryInfo = new HashMap<>();
+            settleDeliveryInfo.put("expectArrivalTime",capacityData.get("startRealTime"));
+            settleDeliveryInfo.put("expectArrivalEndTime",capacityData.get("endRealTime"));
+            settleDeliveryInfo.put("deliveryType",0);
+            request.put("settleDeliveryInfo",settleDeliveryInfo);
+            request.put("tradeType","APP");
+            request.put("purchaserId","");
+            request.put("payType",0);
+            request.put("currency","CNY");
+            request.put("channel","wechat");
+            request.put("shortageId",1);
+            request.put("isSelfPickup",0);
+            request.put("orderType",0);
+            request.put("uid", "181816233927");
+            request.put("appId", "wx57364320cb03dfba");//wx57364320cb03dfba  wxb344a8513eaaf849
+            request.put("addressId", "145244035");
+            Map<String, Object> deliveryInfoVO = new HashMap<>();
+            deliveryInfoVO.put("storeDeliveryTemplateId","552578721878546198");
+            deliveryInfoVO.put("deliveryModeId","1003");
+            deliveryInfoVO.put("storeType","2");
+            request.put("deliveryInfoVO",deliveryInfoVO);
+            request.put("remark","");
+            Map<String, Object> storeInfo = new HashMap<>();
+            storeInfo.put("storeId","4807");
+            storeInfo.put("storeType","2");
+            storeInfo.put("areaBlockId","300145510512240918");
+            request.put("storeInfo",storeInfo);
+            request.put("shortageDesc","其他商品继续配送（缺货商品直接退款）");
+            request.put("payMethodId","1486659732");
+            String s = JSONUtil.toJsonStr(request);
+
+            httpRequest.body(JSONUtil.toJsonStr(request));
             String body = httpRequest.execute().body();
             JSONObject object = JSONUtil.parseObj(body);
-
-            if (!isSuccess(object, "提交订单失败,当前下单总金额：" + totalMoney)) {
+            if (!isSuccess(object, "提交订单")) {
                 return;
             }
-            submitSuccess = object.getJSONObject("data").getStr("pay_url").length() > 0;
+            Boolean success = object.getBool("success");
+            if (success){
+                System.out.println("下单成功!");
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        if (submitSuccess) {
-            for (int i = 0; i < 10; i++) {
-                System.out.println("恭喜你，已成功下单 当前下单总金额：" + totalMoney);
-            }
-            Application.map.put("end", new HashMap<>());
-        }
     }
+
+
 
 }
