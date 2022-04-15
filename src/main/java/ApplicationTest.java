@@ -16,11 +16,12 @@ public class ApplicationTest {
 
     public static void main(String[] args) {
         Map<String, Object> map = new HashMap<>();
-        map.put("startRealTime","1649919600000");
-        map.put("endRealTime","1649941200000");
+        map.put("startRealTime","1650006000000");
+        map.put("endRealTime","1650027600000");
         List<GoodDto> goods = Api.getCart();
         Api.commitPay(goods,map);
 
+        //todo git fork clone 对403处理
 
 //        if (UserConfig.addressId.length() == 0) {
 //            System.err.println("请先执行UserConfig获取配送地址id");

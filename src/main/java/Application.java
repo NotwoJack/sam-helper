@@ -1,5 +1,6 @@
 import cn.hutool.json.JSONArray;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -29,24 +30,13 @@ public class Application {
         //如果想等过高峰期后进行简陋 长时间执行 则将线程数改为1  间隔时间改为10秒以上 并发越小越像真人 不会被风控  要更真一点就用随机数（自己处理）
 
         //基础信息执行线程数
-        int baseTheadSize = 2;
+        int baseTheadSize = 1;
 
         //提交订单执行线程数
-        int submitOrderTheadSize = 6;
+        int submitOrderTheadSize = 1;
 
         //请求间隔时间
-        int sleepMillis = 100;
-
-//        for (int i = 0; i < baseTheadSize; i++) {
-//            new Thread(() -> {
-//                while (!map.containsKey("end")) {
-////                    Api.allCheck();
-//                    Api.getCapacityData();
-//                    //此接口作为补充使用 并不是一定需要 所以执行间隔拉大一点
-//                    sleep(100);
-//                }
-//            }).start();
-//        }
+        int sleepMillis = 1000;
 
         for (int i = 0; i < baseTheadSize; i++) {
             new Thread(() -> {
@@ -59,7 +49,7 @@ public class Application {
                 }
             }).start();
         }
-        for (int i = 0; i < baseTheadSize; i++) {
+        for (int i = 0; i < submitOrderTheadSize; i++) {
             new Thread(() -> {
                 while (!map.containsKey("end")) {
                     sleep(sleepMillis);
@@ -73,6 +63,11 @@ public class Application {
                 }
             }).start();
         }
+//        Map<String, Object> time = new HashMap<>();
+//        time.put("startRealTime","1649984400000");
+//        time.put("endRealTime","1650006000000");
+//        map.put("time", time);
+
         for (int i = 0; i < submitOrderTheadSize; i++) {
             new Thread(() -> {
                 while (!map.containsKey("end")) {
@@ -80,7 +75,10 @@ public class Application {
                         sleep(sleepMillis);
                         continue;
                     }
-                    Api.commitPay((List<GoodDto>) map.get("goods"),(Map<String, Object>) map.get("time"));
+                    Boolean a = Api.commitPay((List<GoodDto>) map.get("goods"),(Map<String, Object>) map.get("time"));
+                    if (a){
+                        map.put("end", "end");
+                    }
                 }
             }).start();
         }

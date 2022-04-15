@@ -1,16 +1,44 @@
+import cn.hutool.core.date.DateTime;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.google.common.collect.ImmutableMap;
+import lombok.SneakyThrows;
 
+import java.applet.Applet;
+import java.applet.AudioClip;
+import java.io.File;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 接口封装
  */
 public class Api {
+
+    public static final Map<String, Map<String, Object>> context = new ConcurrentHashMap<>();
+
+    @SneakyThrows
+    public static void play() {
+        //这里还可以使用企业微信或者钉钉的提供的webhook  自己写代码 很简单 就是按对应数据格式发一个请求到企业微信或者钉钉
+        AudioClip audioClip = Applet.newAudioClip(new File("ding-dong.wav").toURL());
+        audioClip.loop();
+        Thread.sleep(60000);//响铃60秒
+    }
+
+    private static void print(boolean normal, String message) {
+        if (Api.context.containsKey("end")) {
+            return;
+        }
+        if (normal) {
+            System.out.println(DateTime.now() + message);
+        } else {
+            System.err.println(DateTime.now() + message);
+        }
+    }
+
 
     /**
      * 验证请求是否成功
@@ -61,7 +89,7 @@ public class Api {
             Map<String, Object> request = new HashMap<>();
             List<String> date = new ArrayList();
             for(int j = 0; j < 7; j++){
-                date.add("2022-04-"+ (14+j));
+                date.add("2022-04-"+ (15+j));
             }
             request.put("perDateList", date);
             request.put("storeDeliveryTemplateId", "552578721878546198");
@@ -78,7 +106,8 @@ public class Api {
             Map<String, Object> map = new HashMap<>();
             Boolean dateCondition = object.getJSONObject("data").getJSONArray("capcityResponseList").getJSONObject(0).getBool("dateISFull");
             if (dateCondition){
-                System.out.println("【失败】全部配送时间已满");
+                print(false,"【失败】全部配送时间已满");
+//                System.out.println("【失败】全部配送时间已满");
             } else {
                 JSONArray times = object.getJSONObject("data").getJSONArray("capcityResponseList").getJSONObject(0).getJSONArray("list");
                 for (int i = 0; i < times.size(); i++) {
@@ -86,7 +115,8 @@ public class Api {
                     if (!time.getBool("timeISFull")){
                         map.put("startRealTime",time.get("startRealTime"));
                         map.put("endRealTime",time.get("endRealTime"));
-                        System.out.println("【成功】更新配送时间");
+                        print(true,"【成功】更新配送时间");
+//                        System.out.println("【成功】更新配送时间");
                         return map;
                     }
                 }
@@ -113,22 +143,8 @@ public class Api {
             store.put("areaBlockId","300145510512240918");
             store.put("storeDeliveryTemplateId","552578721878546198");
             storeList.add(store);
-
-            Map<String,Object> store2 = new HashMap<>();
-            store2.put("storeType",8);
-            store2.put("storeId","9996");
-            store2.put("areaBlockId","42295");
-            store2.put("storeDeliveryTemplateId","1147161263885953814");
-            storeList.add(store2);
-
-            Map<String,Object> store3 = new HashMap<>();
-            store3.put("storeType",32);
-            store3.put("storeId","9991");
-            store3.put("areaBlockId","42295");
-            store3.put("storeDeliveryTemplateId","1010425035346829590");
-            storeList.add(store3);
-
             request.put("storeList", storeList);
+
             request.put("uid", "181816233927");
             request.put("appId", "wxb344a8513eaaf849");
             request.put("saasId", "1818");
@@ -143,8 +159,8 @@ public class Api {
                 System.out.println("购物车为空");
                 return null;
             } else {
-//                JSONArray goods = object.getJSONObject("data").getJSONObject("miniProgramGoodsInfo").getJSONArray("normalGoodsList");
-                JSONArray goods = object.getJSONObject("data").getJSONArray("floorInfoList").getJSONObject(0).getJSONArray("normalGoodsList");
+                JSONArray goods = object.getJSONObject("data").getJSONObject("miniProgramGoodsInfo").getJSONArray("normalGoodsList");
+//                JSONArray goods = object.getJSONObject("data").getJSONArray("floorInfoList").getJSONObject(0).getJSONArray("normalGoodsList");
                 List<GoodDto> goodDtos = new ArrayList<>();
                 for (int i = 0; i < goods.size(); i++) {
                     JSONObject good = goods.getJSONObject(i);
@@ -154,7 +170,8 @@ public class Api {
                     goodDto.setStoreId(good.getStr("storeId"));
                     goodDtos.add(goodDto);
                 }
-                System.out.println("【成功】更新购物车");
+                print(true,"【成功】更新购物车");
+//                System.out.println("【成功】更新购物车");
                 return goodDtos;
             }
         } catch (Exception e) {
@@ -166,7 +183,7 @@ public class Api {
     /**
      * 下单
      */
-    public static void commitPay(List<GoodDto> goods,Map<String, Object> capacityData) {
+    public static Boolean commitPay(List<GoodDto> goods,Map<String, Object> capacityData) {
         try {
             HttpRequest httpRequest = HttpUtil.createPost("https://api-sams.walmartmobile.cn/api/v1/sams/trade/settlement/commitPay");
 
@@ -177,56 +194,98 @@ public class Api {
             Map<String, Object> request = new HashMap<>();
             request.put("goodsList", goods);
             request.put("invoiceInfo",new HashMap<>());
+            request.put("sceneCode",1074);
+            request.put("isSelectShoppingNotes",true);
             request.put("cartDeliveryType",2);
+            request.put("couponList",new ArrayList<>());
             request.put("floorId",1);
-            request.put("amount","13880");
-            request.put("purchaserName","");
-            Map<String, Object> settleDeliveryInfo = new HashMap<>();
-            settleDeliveryInfo.put("expectArrivalTime",capacityData.get("startRealTime"));
-            settleDeliveryInfo.put("expectArrivalEndTime",capacityData.get("endRealTime"));
-            settleDeliveryInfo.put("deliveryType",0);
-            request.put("settleDeliveryInfo",settleDeliveryInfo);
-            request.put("tradeType","APP");
-            request.put("purchaserId","");
+            request.put("amount",275490);
             request.put("payType",0);
             request.put("currency","CNY");
             request.put("channel","wechat");
             request.put("shortageId",1);
-            request.put("isSelfPickup",0);
             request.put("orderType",0);
+            request.put("remark","");
             request.put("uid", "181816233927");
-            request.put("appId", "wx57364320cb03dfba");//wx57364320cb03dfba  wxb344a8513eaaf849
+            request.put("appId", "wxb344a8513eaaf849");
+            request.put("saasId", "1818");
             request.put("addressId", "145244035");
+            request.put("shortageDesc","其他商品继续配送（缺货商品直接退款）");
+            request.put("labelList","[{\"attachId\":\"1649949934151-1a291f41-226d-4859-8f7e-f64516ac292f\",\"createTime\":1649949934287,\"labelType\":\"tracking_id\"},{\"attachId\":1074,\"createTime\":1649949934289,\"labelType\":\"scene_xcx\"}]");
+            request.put("payMethodId","contract");
             Map<String, Object> deliveryInfoVO = new HashMap<>();
             deliveryInfoVO.put("storeDeliveryTemplateId","552578721878546198");
             deliveryInfoVO.put("deliveryModeId","1003");
             deliveryInfoVO.put("storeType","2");
             request.put("deliveryInfoVO",deliveryInfoVO);
-            request.put("remark","");
+            Map<String, Object> settleDeliveryInfo = new HashMap<>();
+            settleDeliveryInfo.put("expectArrivalTime",capacityData.get("startRealTime"));
+            settleDeliveryInfo.put("expectArrivalEndTime",capacityData.get("endRealTime"));
+            settleDeliveryInfo.put("deliveryType",2);
+            request.put("settleDeliveryInfo",settleDeliveryInfo);
             Map<String, Object> storeInfo = new HashMap<>();
             storeInfo.put("storeId","4807");
             storeInfo.put("storeType","2");
             storeInfo.put("areaBlockId","300145510512240918");
             request.put("storeInfo",storeInfo);
-            request.put("shortageDesc","其他商品继续配送（缺货商品直接退款）");
-            request.put("payMethodId","1486659732");
-            String s = JSONUtil.toJsonStr(request);
-
             httpRequest.body(JSONUtil.toJsonStr(request));
             String body = httpRequest.execute().body();
+            if (body == null || body.isEmpty()){
+                System.out.println("下单失败，可能触发403限流");
+                return false;
+            }
             JSONObject object = JSONUtil.parseObj(body);
             if (!isSuccess(object, "提交订单")) {
-                return;
+                return false;
             }
             Boolean success = object.getBool("success");
-            if (success){
-                System.out.println("下单成功!");
+            context.put("success", new HashMap<>());
+            context.put("end", new HashMap<>());
+            for (int i = 0; i < 10; i++) {
+                System.out.println("恭喜你，已成功下单 当前下单总金额：");
             }
+            return true;
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return false;
     }
-
-
+//
+//request.put("goodsList", goods);
+//            request.put("invoiceInfo",new HashMap<>());
+//            request.put("cartDeliveryType",2);
+//            request.put("floorId",1);
+//            request.put("amount","281170");
+//            request.put("purchaserName","");
+//    Map<String, Object> settleDeliveryInfo = new HashMap<>();
+//            settleDeliveryInfo.put("expectArrivalTime",capacityData.get("startRealTime"));
+//            settleDeliveryInfo.put("expectArrivalEndTime",capacityData.get("endRealTime"));
+//            settleDeliveryInfo.put("deliveryType",0);
+//            request.put("settleDeliveryInfo",settleDeliveryInfo);
+//            request.put("tradeType","APP");
+//            request.put("purchaserId","");
+//            request.put("payType",0);
+//            request.put("currency","CNY");
+//            request.put("channel","wechat");
+//            request.put("shortageId",1);
+//            request.put("isSelfPickup",0);
+//            request.put("orderType",0);
+//            request.put("uid", "181816233927");
+//            request.put("appId", "wxb344a8513eaaf849");
+//            request.put("addressId", "145244035");
+//    Map<String, Object> deliveryInfoVO = new HashMap<>();
+//            deliveryInfoVO.put("storeDeliveryTemplateId","552578721878546198");
+//            deliveryInfoVO.put("deliveryModeId","1003");
+//            deliveryInfoVO.put("storeType","2");
+//            request.put("deliveryInfoVO",deliveryInfoVO);
+//            request.put("remark","");
+//    Map<String, Object> storeInfo = new HashMap<>();
+//            storeInfo.put("storeId","4807");
+//            storeInfo.put("storeType","2");
+//            storeInfo.put("areaBlockId","300145510512240918");
+//            request.put("storeInfo",storeInfo);
+//            request.put("shortageDesc","其他商品继续配送（缺货商品直接退款）");
+//            request.put("payMethodId","1486659732");
+//    String s = JSONUtil.toJsonStr(request);
 
 }
