@@ -7,6 +7,13 @@ import java.util.Map;
  */
 public class UserConfig {
 
+    //1：极速达 2：全城配送
+    public static final String deliveryType = "2";
+    //1：极速达 2：全城配送
+    public static final String cartDeliveryType = "2";
+    //commitPay接口中可以抓到
+    public static final String labelList = "需要填写";
+
     /**
      * 抓包后参考项目中的image/headers.jpeg 把信息一行一行copy到下面 没有的key不需要复制
      */
@@ -28,14 +35,12 @@ public class UserConfig {
 
     /**
      * 抓包后参考项目中的image/body.jpeg 把信息一行一行copy到下面 没有的key不需要复制
-     * <p>
-     * 这里不能加泛型 有些接口是params  泛型必须要求<String,String> 有些是form表单 泛型要求<String,Object> 无法统一
      */
     public static Map<String,Object> getIdInfo() {
         Map<String,Object> idInfo = new HashMap<>();
-        idInfo.put("uid", "181816233927");
-        idInfo.put("appId", "wxb344a8513eaaf849");
-        idInfo.put("saasId", "1818");
+        idInfo.put("uid", "需要填写");
+        idInfo.put("appId", "需要填写");
+        idInfo.put("saasId", "需要填写");
         return idInfo;
     }
 
