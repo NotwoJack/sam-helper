@@ -29,7 +29,7 @@ public class UserConfig {
         headers.put("User-Agent", "SamClub/5.0.45 (iPhone; iOS 15.4; Scale/3.00)");
         headers.put("device-type", "mini_program");
         //以上不需要修改
-        headers.put("auth-token", "740d926b981716f4a42ea734ed0c250a5c54c502a29294e5592d635eb97214d8");
+        headers.put("auth-token", "需要填写");
     return headers;
     }
 
