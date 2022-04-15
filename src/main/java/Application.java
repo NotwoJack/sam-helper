@@ -1,9 +1,5 @@
-import cn.hutool.json.JSONArray;
-
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 抢菜主程序
@@ -17,7 +13,6 @@ public class Application {
         }
     }
 
-
     public static void main(String[] args) {
 
         //此为高峰期策略 通过同时获取或更新 购物车、配送、订单确认信息再进行高并发提交订单
@@ -28,7 +23,7 @@ public class Application {
         int baseTheadSize = 1;
 
         //提交订单执行线程数
-        int submitOrderTheadSize = 6;
+        int submitOrderTheadSize = 1;
 
         //请求间隔时间
         int sleepMillis = 200;
