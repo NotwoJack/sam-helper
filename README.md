@@ -34,3 +34,4 @@ Mac 微信小程序 浦东 全城送 微信支付
 山姆接口参考至 https://github.com/azhan1998/sam_buy
 
 # 群组讨论
+![qrcode](https://github.com/NotwoJack/sam-helper/blob/main/image/qrcode.JPG)
