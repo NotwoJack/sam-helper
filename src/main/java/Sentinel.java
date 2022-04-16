@@ -26,6 +26,7 @@ public class Sentinel {
         int loopTryCount = 8;
 
         Map<String, Map<String, Object>> init = Api.init();
+
         while (!Api.context.containsKey("end")) {
             try {
                 sleep(RandomUtil.randomInt(sleepMillisMin, sleepMillisMax));

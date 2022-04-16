@@ -2,7 +2,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 抢菜主程序
+ * 抢单 主程序
  */
 public class Application {
 
@@ -23,7 +23,7 @@ public class Application {
         int baseTheadSize = 1;
 
         //提交订单执行线程数
-        int submitOrderTheadSize = 1;
+        int submitOrderTheadSize = 4;
 
         //请求间隔时间
         int sleepMillis = 200;
