@@ -64,7 +64,7 @@ public class Application {
                         sleep(sleepMillis);
                         continue;
                     }
-                    Boolean a = Api.commitPay((List<GoodDto>) Api.context.get("good"), (Map<String, Object>) Api.context.get("time"), init.get("deliveryAddressDetail"), init.get("storeDetail"));
+                    Boolean a = Api.commitPay((List<GoodDto>) Api.context.get("goods"), (Map<String, Object>) Api.context.get("time"), init.get("deliveryAddressDetail"), init.get("storeDetail"));
                     if (a){
                         Api.context.put("end", "end");
                     }
