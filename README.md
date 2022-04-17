@@ -36,9 +36,9 @@ todo# sam-helper
 # 抓包说明
 使用抓包软件，mac下charles win下fiddler，抓取微信小程序等这个接口
 
-![headers](https://github.com/NotwoJack/sam-helper/blob/main/image/headers.JPG)
+![headers](https://github.com/NotwoJack/sam-helper/blob/main/image/headers.png)
 
-![headers2](https://github.com/NotwoJack/sam-helper/blob/main/image/headers2.JPG)
+![headers2](https://github.com/NotwoJack/sam-helper/blob/main/image/headers2.png)
 
 # 测试环境
 Mac 微信小程序 浦东 全城送 微信支付
