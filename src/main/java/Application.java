@@ -23,7 +23,7 @@ public class Application {
         int baseTheadSize = 1;
 
         //提交订单执行线程数
-        int submitOrderTheadSize = 4;
+        int submitOrderTheadSize = 2;
 
         //请求间隔时间
         int sleepMillis = 200;

@@ -23,7 +23,7 @@ public class Sentinel {
         int sleepMillisMax = 5000;
 
         //单轮轮询时请求异常（服务器高峰期限流策略）尝试次数
-        int loopTryCount = 8;
+        int loopTryCount = 5;
 
         Map<String, Map<String, Object>> init = Api.init();
 
