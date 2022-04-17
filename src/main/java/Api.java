@@ -20,6 +20,10 @@ public class Api {
 
     public static final Map<String, Object> context = new ConcurrentHashMap<>();
 
+    /**
+     * 获取用户初始化信息，收货地址信息和匹配商店信息。为app上设定的默认值
+     * @return 信息集合
+     */
     public static Map<String, Map<String, Object>> init(){
         try {
             Map<String, Map<String, Object>> map = new HashMap<>();
@@ -64,20 +68,20 @@ public class Api {
     private static boolean isSuccess(JSONObject object, String actionName) {
         Boolean success = object.getBool("success");
         if (success == null) {
-            if ("405".equals(object.getStr("code"))) {
-                print(false,actionName + "失败:" + "出现此问题有三个可能 1.偶发，无需处理 2.一个账号一天只能下两单  3.不要长时间运行程序，目前已知有人被风控了，暂时未确认风控的因素是ip还是用户或设备相关信息，如果要测试用单次执行模式，并发只能用于6点、8点半的前一分钟，然后执行时间不能超过2分钟，如果买不到就不要再执行程序了，切忌切忌，如果已经被风控的可以尝试过一段时间再试，或者换号");
-            } else {
-                print(false,actionName + "失败,服务器返回无法解析的内容:" + JSONUtil.toJsonStr(object));
-            }
+            print(false,"【失败】" + actionName + " 服务器返回无法解析的内容:" + JSONUtil.toJsonStr(object));
             return false;
         }
         if (success) {
             return true;
         }
-        print(false,actionName + "失败:" + object.get("msg"));
+        print(false,"【失败】" + actionName + " 原因:" + object.get("msg"));
         return false;
     }
 
+    /**
+     * 获取默认的下单地址信息
+     * @return 地址信息Map
+     */
     public static Map<String, Object> getDeliveryAddressDetail() {
         try {
             HttpRequest httpRequest = HttpUtil.createPost("https://api-sams.walmartmobile.cn/api/v1/sams/trade/cart/getDeliveryAddressDetail");
@@ -102,6 +106,12 @@ public class Api {
         return null;
     }
 
+    /**
+     * 获取匹配的商店信息
+     * @param latitude 纬度
+     * @param longitude 经度
+     * @return 商店信息Map
+     */
     public static Map<String, Object> getMiniUnLoginStoreList(Double latitude, Double longitude) {
         try {
             HttpRequest httpRequest = HttpUtil.createPost("https://api-sams.walmartmobile.cn/api/v1/sams/merchant/storeApi/getMiniUnLoginStoreList");
@@ -140,7 +150,8 @@ public class Api {
 
     /**
      * 获取配送时间
-     * @return
+     * @param storeDetail 商店信息
+     * @return 配送信息Map
      */
     public static Map<String, Object> getCapacityData(Map<String, Object> storeDetail) {
         try {
@@ -187,7 +198,8 @@ public class Api {
 
     /**
      * 获取购物车信息
-     * @return
+     * @param storeDetail 商店信息
+     * @return 购物车商品列表
      */
     public static List<GoodDto> getCart(Map<String, Object> storeDetail) {
         try {
@@ -238,7 +250,12 @@ public class Api {
     }
 
     /**
-     * 下单
+     * 提交订单
+     * @param goods 商品信息
+     * @param capacityData 配送信息
+     * @param deliveryAddressDetail 配送地址信息
+     * @param storeDetail 商店信息
+     * @return 下单成功与否
      */
     public static Boolean commitPay(List<GoodDto> goods,Map<String, Object> capacityData,Map<String, Object> deliveryAddressDetail,Map<String, Object> storeDetail) {
         try {

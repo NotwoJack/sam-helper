@@ -64,9 +64,9 @@ public class Application {
                         sleep(sleepMillis);
                         continue;
                     }
-                    Boolean a = Api.commitPay((List<GoodDto>) Api.context.get("goods"), (Map<String, Object>) Api.context.get("time"), init.get("deliveryAddressDetail"), init.get("storeDetail"));
-                    if (a){
-                        Api.context.put("end", "end");
+                    if (Api.commitPay((List<GoodDto>) Api.context.get("goods"), (Map<String, Object>) Api.context.get("time"), init.get("deliveryAddressDetail"), init.get("storeDetail"))){
+                        System.out.println("铃声持续1分钟，终止程序即可，如果还需要下单再继续运行程序");
+                        Api.play();
                     }
                 }
             }).start();

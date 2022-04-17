@@ -40,17 +40,17 @@ public class Sentinel {
                     continue;
                 }
 
-                Map<String, Object> multiReserveTimeMap = null;
-                for (int i = 0; i < loopTryCount && multiReserveTimeMap == null; i++) {
+                Map<String, Object> capacityData = null;
+                for (int i = 0; i < loopTryCount && capacityData == null; i++) {
                     sleep(RandomUtil.randomInt(100, 500));
-                    multiReserveTimeMap = Api.getCapacityData(init.get("storeDetail"));
+                    capacityData = Api.getCapacityData(init.get("storeDetail"));
                 }
-                if (multiReserveTimeMap == null) {
+                if (capacityData == null) {
                     continue;
                 }
 
                 for (int i = 0; i < loopTryCount; i++) {
-                    if (Api.commitPay(goodDtos, multiReserveTimeMap, init.get("deliveryAddressDetail"), init.get("storeDetail"))) {
+                    if (Api.commitPay(goodDtos, capacityData, init.get("deliveryAddressDetail"), init.get("storeDetail"))) {
                         System.out.println("铃声持续1分钟，终止程序即可，如果还需要下单再继续运行程序");
                         Api.play();
                         break;
