@@ -10,6 +10,8 @@ import lombok.SneakyThrows;
 import java.applet.Applet;
 import java.applet.AudioClip;
 import java.io.File;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -50,10 +52,11 @@ public class Api {
         if (Api.context.containsKey("end")) {
             return;
         }
+        String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
         if (normal) {
-            System.out.println(DateTime.now() + message);
+            System.out.println(time + message);
         } else {
-            System.err.println(DateTime.now() + message);
+            System.err.println(time + message);
         }
     }
 

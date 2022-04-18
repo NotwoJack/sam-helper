@@ -1,3 +1,4 @@
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -23,7 +24,7 @@ public class Application {
         int baseTheadSize = 1;
 
         //提交订单执行线程数
-        int submitOrderTheadSize = 2;
+        int submitOrderTheadSize = 3;
 
         //请求间隔时间
         int sleepMillis = 200;
@@ -56,6 +57,11 @@ public class Application {
                 }
             }).start();
         }
+
+//        Map<String, Object> time = new HashMap<>();
+//        time.put("startRealTime","1650351600000");
+//        time.put("endRealTime","1650373200000");
+//        Api.context.put("time", time);
 
         for (int i = 0; i < submitOrderTheadSize; i++) {
             new Thread(() -> {
