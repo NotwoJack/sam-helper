@@ -230,16 +230,17 @@ public class Api {
                 print(false,"购物车为空");
                 return null;
             } else {
+                StringBuilder amountStr = new StringBuilder(object.getJSONObject("data").getStr("selectedAmount"));
+                amountStr.insert(amountStr.length() - 2,".");
+                double amount = Double.parseDouble(String.valueOf(amountStr));
                 JSONArray goods = object.getJSONObject("data").getJSONObject("miniProgramGoodsInfo").getJSONArray("normalGoodsList");
                 List<GoodDto> goodDtos = new ArrayList<>();
-                Integer amount = 0;
                 for (int i = 0; i < goods.size(); i++) {
                     JSONObject good = goods.getJSONObject(i);
                     GoodDto goodDto = new GoodDto();
                     goodDto.setSpuId(good.getStr("spuId"));
                     goodDto.setQuantity(good.getStr("quantity"));
                     goodDto.setStoreId(good.getStr("storeId"));
-                    amount = amount + good.getInt("quantity") * good.getInt("price");
                     goodDtos.add(goodDto);
                 }
                 context.put("amount", amount);
