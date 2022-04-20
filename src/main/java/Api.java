@@ -3,6 +3,7 @@ import cn.hutool.core.date.DateTime;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONArray;
+import cn.hutool.json.JSONException;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import lombok.SneakyThrows;
@@ -173,7 +174,14 @@ public class Api {
 
             httpRequest.body(JSONUtil.toJsonStr(request));
             String body = httpRequest.execute().body();
-            JSONObject object = JSONUtil.parseObj(body);
+            JSONObject object = null;
+            try {
+                object = JSONUtil.parseObj(body);
+            } catch (JSONException e) {
+                print(false,"【失败】并发过高被风控，请调整参数");
+                e.printStackTrace();
+                System.exit(0);
+            }
             if (!isSuccess(object, "更新配送时间")) {
                 return null;
             }
