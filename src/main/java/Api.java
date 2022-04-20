@@ -3,6 +3,7 @@ import cn.hutool.core.date.DateTime;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONArray;
+import cn.hutool.json.JSONException;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import lombok.SneakyThrows;
@@ -193,6 +194,10 @@ public class Api {
                     }
                 }
             }
+        } catch (JSONException e) {
+            print(false,"【失败】并发过高被风控，请调整参数");
+            e.printStackTrace();
+            System.exit(0);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -322,6 +327,10 @@ public class Api {
                 System.out.println("恭喜你，已成功下单 当前下单总金额：" + context.get("amount"));
             }
             return true;
+        } catch (JSONException e) {
+            print(false,"【失败】并发过高被风控，请调整参数");
+            e.printStackTrace();
+            System.exit(0);
         } catch (Exception e) {
             e.printStackTrace();
         }
