@@ -174,14 +174,7 @@ public class Api {
 
             httpRequest.body(JSONUtil.toJsonStr(request));
             String body = httpRequest.execute().body();
-            JSONObject object = null;
-            try {
-                object = JSONUtil.parseObj(body);
-            } catch (JSONException e) {
-                print(false,"【失败】并发过高被风控，请调整参数");
-                e.printStackTrace();
-                System.exit(0);
-            }
+            JSONObject object = JSONUtil.parseObj(body);
             if (!isSuccess(object, "更新配送时间")) {
                 return null;
             }
@@ -201,6 +194,10 @@ public class Api {
                     }
                 }
             }
+        } catch (JSONException e) {
+            print(false,"【失败】并发过高被风控，请调整参数");
+            e.printStackTrace();
+            System.exit(0);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -330,6 +327,10 @@ public class Api {
                 System.out.println("恭喜你，已成功下单 当前下单总金额：" + context.get("amount"));
             }
             return true;
+        } catch (JSONException e) {
+            print(false,"【失败】并发过高被风控，请调整参数");
+            e.printStackTrace();
+            System.exit(0);
         } catch (Exception e) {
             e.printStackTrace();
         }
