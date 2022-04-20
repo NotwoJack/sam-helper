@@ -238,21 +238,21 @@ public class Api {
                 print(false,"购物车为空");
                 return null;
             } else {
-                StringBuilder amountStr = new StringBuilder(object.getJSONObject("data").getStr("selectedAmount"));
-                amountStr.insert(amountStr.length() - 2,".");
-                double amount = Double.parseDouble(String.valueOf(amountStr));
+                double amount = object.getJSONObject("data").getDouble("selectedAmount") / 100;
                 JSONArray goods = object.getJSONObject("data").getJSONObject("miniProgramGoodsInfo").getJSONArray("normalGoodsList");
                 List<GoodDto> goodDtos = new ArrayList<>();
                 for (int i = 0; i < goods.size(); i++) {
                     JSONObject good = goods.getJSONObject(i);
-                    GoodDto goodDto = new GoodDto();
-                    goodDto.setSpuId(good.getStr("spuId"));
-                    goodDto.setQuantity(good.getStr("quantity"));
-                    goodDto.setStoreId(good.getStr("storeId"));
-                    goodDtos.add(goodDto);
+                    if (good.getBool("isSelected")){
+                        GoodDto goodDto = new GoodDto();
+                        goodDto.setSpuId(good.getStr("spuId"));
+                        goodDto.setQuantity(good.getStr("quantity"));
+                        goodDto.setStoreId(good.getStr("storeId"));
+                        goodDtos.add(goodDto);
+                    }
                 }
                 context.put("amount", amount);
-                print(true,"【成功】更新购物车，总金额：" + amount);
+                print(true,"【成功】更新购物车，总金额：" + amount + "元");
                 return goodDtos;
             }
         } catch (Exception e) {
