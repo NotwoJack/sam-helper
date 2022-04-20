@@ -37,7 +37,7 @@ public class UserConfig {
      */
     public static Map<String,Object> getIdInfo() {
         Map<String,Object> idInfo = new HashMap<>();
-        idInfo.put("uid", "需要填写");
+        idInfo.put("uid", "181816666675");
         idInfo.put("appId", "wxb344a8666eaaf849");
         idInfo.put("saasId", "1818");
         return idInfo;
