@@ -48,7 +48,8 @@ public class Sentinel {
                 List<GoodDto> goodDtos = null;
                 for (int i = 0; i < loopTryCount && goodDtos == null; i++) {
                     sleep(RandomUtil.randomInt(500, 1000));
-                    goodDtos = Api.getCart(init.get("storeDetail"));
+                    goodDtos = Api.getGoodsListByCategoryId(init.get("storeDetail"));//用于监控保供套餐
+//                    goodDtos = Api.getCart(init.get("storeDetail"));//用于获取购物车
                 }
                 if (goodDtos == null) {
                     continue;

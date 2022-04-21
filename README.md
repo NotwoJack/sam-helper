@@ -6,16 +6,16 @@
 
 目前只能下单普通商品，暂无法购买全球购等渠道。
 
-请勿长时间使用，会被风控。
+主程序不要运行超过2分钟，会被风控。
 
-抢菜不易，请勿用于商业牟利。
+抢单不易，请勿用于商业牟利。
 
 # 使用说明
 程序端：根据抓包数据，填写UserConfig文件中的变量，运行测试（AplicationTest）查看能否正确获得购物车信息。
 
-在58分半的时候开始运行主程序（Application），切记主程序不能运行超过两分钟，会被风控。平时可以运行捡漏模式（Sentinel）。
+在58分半的时候开始运行主程序（Application），切记主程序不能运行超过2分钟，会被风控。平时可以运行捡漏模式（Sentinel）。
 
-手机端：app上添加商品至购物车，下单成功后付款。
+手机端：app上添加商品至购物车，确认下单地址，下单成功后进行付款。
 
 电脑端：微信小程序，抓包接口数据。以及运行程序。
 
@@ -24,14 +24,13 @@
 
 ![headers](https://github.com/NotwoJack/sam-helper/blob/main/image/headers.png)
 
-![headers2](https://github.com/NotwoJack/sam-helper/blob/main/image/headers2.png)
-
 # 测试环境
 Mac 微信小程序 浦东 全城送 微信支付
 
-成功过一次 还在完善
-
 # 更新记录
+## 2022.04.21
+1. 新增保供套餐自动检测下单功能（测试中）
+
 ## 2022.04.18
 1. 减少哨兵模式的请求频率避免风控
 2. userconfig中的lablelist为非必填项，写死

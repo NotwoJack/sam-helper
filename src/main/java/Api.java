@@ -1,5 +1,7 @@
 import cn.hutool.core.date.DateField;
 import cn.hutool.core.date.DateTime;
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONArray;
@@ -11,6 +13,7 @@ import lombok.SneakyThrows;
 import java.applet.Applet;
 import java.applet.AudioClip;
 import java.io.File;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -25,15 +28,16 @@ public class Api {
 
     /**
      * 获取用户初始化信息，收货地址信息和匹配商店信息。为app上设定的默认值
+     *
      * @return 信息集合
      */
-    public static Map<String, Map<String, Object>> init(){
+    public static Map<String, Map<String, Object>> init() {
         try {
             Map<String, Map<String, Object>> map = new HashMap<>();
             Map<String, Object> deliveryAddressDetail = getDeliveryAddressDetail();
             Map<String, Object> storeDetail = getMiniUnLoginStoreList(Double.parseDouble((String) deliveryAddressDetail.get("latitude")), Double.parseDouble((String) deliveryAddressDetail.get("longitude")));
-            map.put("deliveryAddressDetail",deliveryAddressDetail);
-            map.put("storeDetail",storeDetail);
+            map.put("deliveryAddressDetail", deliveryAddressDetail);
+            map.put("storeDetail", storeDetail);
             return map;
         } catch (Exception e) {
             e.printStackTrace();
@@ -72,18 +76,19 @@ public class Api {
     private static boolean isSuccess(JSONObject object, String actionName) {
         Boolean success = object.getBool("success");
         if (success == null) {
-            print(false,"【失败】" + actionName + " 服务器返回无法解析的内容:" + JSONUtil.toJsonStr(object));
+            print(false, "【失败】" + actionName + " 服务器返回无法解析的内容:" + JSONUtil.toJsonStr(object));
             return false;
         }
         if (success) {
             return true;
         }
-        print(false,"【失败】" + actionName + " 原因:" + object.get("msg"));
+        print(false, "【失败】" + actionName + " 原因:" + object.get("msg"));
         return false;
     }
 
     /**
      * 获取默认的下单地址信息
+     *
      * @return 地址信息Map
      */
     public static Map<String, Object> getDeliveryAddressDetail() {
@@ -112,7 +117,8 @@ public class Api {
 
     /**
      * 获取匹配的商店信息
-     * @param latitude 纬度
+     *
+     * @param latitude  纬度
      * @param longitude 经度
      * @return 商店信息Map
      */
@@ -121,9 +127,9 @@ public class Api {
             HttpRequest httpRequest = HttpUtil.createPost("https://api-sams.walmartmobile.cn/api/v1/sams/merchant/storeApi/getMiniUnLoginStoreList");
             httpRequest.addHeaders(UserConfig.getHeaders());
             Map<String, Object> request = UserConfig.getIdInfo();
-            request.put("latitude",latitude);
-            request.put("longitude",longitude);
-            request.put("requestType","location_recmd");
+            request.put("latitude", latitude);
+            request.put("longitude", longitude);
+            request.put("requestType", "location_recmd");
 
             httpRequest.body(JSONUtil.toJsonStr(request));
             String body = httpRequest.execute().body();
@@ -134,15 +140,15 @@ public class Api {
             Map<String, Object> map = new HashMap<>();
             JSONArray storeList = object.getJSONObject("data").getJSONArray("storeList");
             Iterator<Object> iterator = storeList.iterator();
-            while (iterator.hasNext()){
-                JSONObject store = (JSONObject)iterator.next();
-                if (store.getInt("storeType") == 2){
-                    map.put("storeType",store.getStr("storeType"));
-                    map.put("storeId",store.getStr("storeId"));
-                    map.put("storeDeliveryTemplateId",store.getJSONObject("storeRecmdDeliveryTemplateData").getStr("storeDeliveryTemplateId"));
-                    map.put("areaBlockId",store.getJSONObject("storeAreaBlockVerifyData").getStr("areaBlockId"));
-                    map.put("deliveryModeId",store.getJSONObject("storeDeliveryModeVerifyData").getStr("deliveryModeId"));
-                    map.put("storeName",store.getStr("storeName"));
+            while (iterator.hasNext()) {
+                JSONObject store = (JSONObject) iterator.next();
+                if (store.getInt("storeType") == 2) {
+                    map.put("storeType", store.getStr("storeType"));
+                    map.put("storeId", store.getStr("storeId"));
+                    map.put("storeDeliveryTemplateId", store.getJSONObject("storeRecmdDeliveryTemplateData").getStr("storeDeliveryTemplateId"));
+                    map.put("areaBlockId", store.getJSONObject("storeAreaBlockVerifyData").getStr("areaBlockId"));
+                    map.put("deliveryModeId", store.getJSONObject("storeDeliveryModeVerifyData").getStr("deliveryModeId"));
+                    map.put("storeName", store.getStr("storeName"));
                 }
             }
             return map;
@@ -154,6 +160,7 @@ public class Api {
 
     /**
      * 获取配送时间
+     *
      * @param storeDetail 商店信息
      * @return 配送信息Map
      */
@@ -165,7 +172,7 @@ public class Api {
 
             List<String> date = new ArrayList<>();
             DateTime dateTime = new DateTime();
-            for(int j = 0; j < 7; j++) {
+            for (int j = 0; j < 7; j++) {
                 date.add(dateTime.toString("yyyy-MM-dd"));
                 dateTime.offset(DateField.DAY_OF_MONTH, 1);
             }
@@ -180,22 +187,22 @@ public class Api {
             }
             Map<String, Object> map = new HashMap<>();
             Boolean dateCondition = object.getJSONObject("data").getJSONArray("capcityResponseList").getJSONObject(0).getBool("dateISFull");
-            if (dateCondition){
-                print(false,"【失败】全部配送时间已满");
+            if (dateCondition) {
+                print(false, "【失败】全部配送时间已满");
             } else {
                 JSONArray times = object.getJSONObject("data").getJSONArray("capcityResponseList").getJSONObject(0).getJSONArray("list");
                 for (int i = 0; i < times.size(); i++) {
                     JSONObject time = times.getJSONObject(i);
-                    if (!time.getBool("timeISFull")){
-                        map.put("startRealTime",time.get("startRealTime"));
-                        map.put("endRealTime",time.get("endRealTime"));
-                        print(true,"【成功】更新配送时间:" + time.getStr("startTime") + " -- " + time.getStr("endTime"));
+                    if (!time.getBool("timeISFull")) {
+                        map.put("startRealTime", time.get("startRealTime"));
+                        map.put("endRealTime", time.get("endRealTime"));
+                        print(true, "【成功】更新配送时间:" + time.getStr("startTime") + " -- " + time.getStr("endTime"));
                         return map;
                     }
                 }
             }
         } catch (JSONException e) {
-            print(false,"【失败】并发过高被风控，请调整参数");
+            print(false, "【失败】并发过高被风控，请调整参数");
             e.printStackTrace();
             System.exit(0);
         } catch (Exception e) {
@@ -205,7 +212,55 @@ public class Api {
     }
 
     /**
+     * 获取预估的配送时间
+     *
+     * @param storeDetail 商店信息
+     * @return 配送信息Map
+     */
+    public static Map<String, Object> getGuessData(Map<String, Object> storeDetail) {
+        try {
+            HttpRequest httpRequest = HttpUtil.createPost("https://api-sams.walmartmobile.cn/api/v1/sams/delivery/portal/getCapacityData");
+            httpRequest.addHeaders(UserConfig.getHeaders());
+            Map<String, Object> request = UserConfig.getIdInfo();
+
+            List<String> date = new ArrayList<>();
+            DateTime dateTime = new DateTime();
+            for (int j = 0; j < 7; j++) {
+                date.add(dateTime.toString("yyyy-MM-dd"));
+                dateTime.offset(DateField.DAY_OF_MONTH, 1);
+            }
+            request.put("perDateList", date);
+            request.put("storeDeliveryTemplateId", storeDetail.get("storeDeliveryTemplateId"));
+
+            httpRequest.body(JSONUtil.toJsonStr(request));
+            String body = httpRequest.execute().body();
+            JSONObject object = JSONUtil.parseObj(body);
+            if (!isSuccess(object, "更新配送时间")) {
+                return null;
+            }
+            Map<String, Object> map = new HashMap<>();
+            JSONArray times = object.getJSONObject("data").getJSONArray("capcityResponseList").getJSONObject(0).getJSONArray("list");
+            if (times.size() > 1) {
+                //直接拿下一个时间
+                JSONObject time = times.getJSONObject(1);
+                map.put("startRealTime", time.get("startRealTime"));
+                map.put("endRealTime", time.get("endRealTime"));
+            } else {
+                //计算明天的时间
+                JSONObject time = times.getJSONObject(0);
+                map.put("startRealTime", new BigDecimal(time.getStr("startRealTime")).add(new BigDecimal(86400000)).toString());
+                map.put("endRealTime", new BigDecimal(time.getStr("endRealTime")).add(new BigDecimal(86400000)).toString());
+            }
+            return map;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
      * 获取购物车信息
+     *
      * @param storeDetail 商店信息
      * @return 购物车商品列表
      */
@@ -216,11 +271,11 @@ public class Api {
             Map<String, Object> request = UserConfig.getIdInfo();
 
             List<Map> storeList = new ArrayList();
-            Map<String,Object> store = new HashMap<>();
-            store.put("storeType",storeDetail.get("storeType"));
-            store.put("storeId",storeDetail.get("storeId"));
-            store.put("areaBlockId",storeDetail.get("areaBlockId"));
-            store.put("storeDeliveryTemplateId",storeDetail.get("storeDeliveryTemplateId"));
+            Map<String, Object> store = new HashMap<>();
+            store.put("storeType", storeDetail.get("storeType"));
+            store.put("storeId", storeDetail.get("storeId"));
+            store.put("areaBlockId", storeDetail.get("areaBlockId"));
+            store.put("storeDeliveryTemplateId", storeDetail.get("storeDeliveryTemplateId"));
             storeList.add(store);
             request.put("storeList", storeList);
 
@@ -231,8 +286,8 @@ public class Api {
                 return null;
             }
             Integer selectedNumber = object.getJSONObject("data").getInt("selectedNumber");
-            if (selectedNumber == 0){
-                print(false,"购物车为空");
+            if (selectedNumber == 0) {
+                print(false, "购物车为空");
                 return null;
             } else {
                 double amount = object.getJSONObject("data").getDouble("selectedAmount") / 100;
@@ -240,7 +295,7 @@ public class Api {
                 List<GoodDto> goodDtos = new ArrayList<>();
                 for (int i = 0; i < goods.size(); i++) {
                     JSONObject good = goods.getJSONObject(i);
-                    if (good.getBool("isSelected")){
+                    if (good.getBool("isSelected")) {
                         GoodDto goodDto = new GoodDto();
                         goodDto.setSpuId(good.getStr("spuId"));
                         goodDto.setQuantity(good.getStr("quantity"));
@@ -249,7 +304,7 @@ public class Api {
                     }
                 }
                 context.put("amount", amount);
-                print(true,"【成功】更新购物车，总金额：" + amount + "元");
+                print(true, "【成功】更新购物车，总金额：" + amount + "元");
                 return goodDtos;
             }
         } catch (Exception e) {
@@ -260,13 +315,14 @@ public class Api {
 
     /**
      * 提交订单
-     * @param goods 商品信息
-     * @param capacityData 配送信息
+     *
+     * @param goods                 商品信息
+     * @param capacityData          配送信息
      * @param deliveryAddressDetail 配送地址信息
-     * @param storeDetail 商店信息
+     * @param storeDetail           商店信息
      * @return 下单成功与否
      */
-    public static Boolean commitPay(List<GoodDto> goods,Map<String, Object> capacityData,Map<String, Object> deliveryAddressDetail,Map<String, Object> storeDetail) {
+    public static Boolean commitPay(List<GoodDto> goods, Map<String, Object> capacityData, Map<String, Object> deliveryAddressDetail, Map<String, Object> storeDetail) {
         try {
             HttpRequest httpRequest = HttpUtil.createPost("https://api-sams.walmartmobile.cn/api/v1/sams/trade/settlement/commitPay");
 
@@ -276,45 +332,45 @@ public class Api {
 
             Map<String, Object> request = UserConfig.getIdInfo();
             request.put("goodsList", goods);
-            request.put("invoiceInfo",new HashMap<>());
-            request.put("sceneCode",1074);
-            request.put("isSelectShoppingNotes",true);
-            request.put("cartDeliveryType",UserConfig.cartDeliveryType);
-            request.put("couponList",new ArrayList<>());
-            request.put("floorId",1);
-            request.put("amount",context.get("amount"));
-            request.put("payType",0);
-            request.put("currency","CNY");
-            request.put("channel","wechat");
-            request.put("shortageId",1);
-            request.put("orderType",0);
-            request.put("remark","");
+            request.put("invoiceInfo", new HashMap<>());
+            request.put("sceneCode", 1074);
+            request.put("isSelectShoppingNotes", true);
+            request.put("cartDeliveryType", UserConfig.cartDeliveryType);
+            request.put("couponList", new ArrayList<>());
+            request.put("floorId", 1);
+            request.put("amount", context.get("amount"));
+            request.put("payType", 0);
+            request.put("currency", "CNY");
+            request.put("channel", "wechat");
+            request.put("shortageId", 1);
+            request.put("orderType", 0);
+            request.put("remark", "");
             request.put("addressId", deliveryAddressDetail.get("addressId"));
-            request.put("shortageDesc","其他商品继续配送（缺货商品直接退款）");
-            request.put("labelList",UserConfig.labelList);
-            request.put("payMethodId","contract");
+            request.put("shortageDesc", "其他商品继续配送（缺货商品直接退款）");
+            request.put("labelList", UserConfig.labelList);
+            request.put("payMethodId", "contract");
 
             Map<String, Object> deliveryInfoVO = new HashMap<>();
-            deliveryInfoVO.put("storeDeliveryTemplateId",storeDetail.get("storeDeliveryTemplateId"));
-            deliveryInfoVO.put("deliveryModeId",storeDetail.get("deliveryModeId"));
-            deliveryInfoVO.put("storeType",storeDetail.get("storeType"));
+            deliveryInfoVO.put("storeDeliveryTemplateId", storeDetail.get("storeDeliveryTemplateId"));
+            deliveryInfoVO.put("deliveryModeId", storeDetail.get("deliveryModeId"));
+            deliveryInfoVO.put("storeType", storeDetail.get("storeType"));
 
-            request.put("deliveryInfoVO",deliveryInfoVO);
+            request.put("deliveryInfoVO", deliveryInfoVO);
             Map<String, Object> settleDeliveryInfo = new HashMap<>();
-            settleDeliveryInfo.put("expectArrivalTime",capacityData.get("startRealTime"));
-            settleDeliveryInfo.put("expectArrivalEndTime",capacityData.get("endRealTime"));
-            settleDeliveryInfo.put("deliveryType",UserConfig.deliveryType);
-            request.put("settleDeliveryInfo",settleDeliveryInfo);
+            settleDeliveryInfo.put("expectArrivalTime", capacityData.get("startRealTime"));
+            settleDeliveryInfo.put("expectArrivalEndTime", capacityData.get("endRealTime"));
+            settleDeliveryInfo.put("deliveryType", UserConfig.deliveryType);
+            request.put("settleDeliveryInfo", settleDeliveryInfo);
 
             Map<String, Object> storeInfo = new HashMap<>();
-            storeInfo.put("storeId",storeDetail.get("storeId"));
-            storeInfo.put("storeType",storeDetail.get("storeType"));
-            storeInfo.put("areaBlockId",storeDetail.get("areaBlockId"));
-            request.put("storeInfo",storeInfo);
+            storeInfo.put("storeId", storeDetail.get("storeId"));
+            storeInfo.put("storeType", storeDetail.get("storeType"));
+            storeInfo.put("areaBlockId", storeDetail.get("areaBlockId"));
+            request.put("storeInfo", storeInfo);
             httpRequest.body(JSONUtil.toJsonStr(request));
             String body = httpRequest.execute().body();
-            if (body == null || body.isEmpty()){
-                System.out.println("下单失败，可能触发403限流");
+            if (body == null || body.isEmpty()) {
+                print(false, "下单失败，可能触发403限流");
                 return false;
             }
             JSONObject object = JSONUtil.parseObj(body);
@@ -324,11 +380,11 @@ public class Api {
             context.put("success", new HashMap<>());
             context.put("end", new HashMap<>());
             for (int i = 0; i < 10; i++) {
-                System.out.println("恭喜你，已成功下单 当前下单总金额：" + context.get("amount"));
+                print(true, "恭喜你，已成功下单 当前下单总金额：" + context.get("amount") + "元");
             }
             return true;
         } catch (JSONException e) {
-            print(false,"【失败】并发过高被风控，请调整参数");
+            print(false, "【失败】并发过高被风控，请调整参数");
             e.printStackTrace();
             System.exit(0);
         } catch (Exception e) {
@@ -336,4 +392,63 @@ public class Api {
         }
         return false;
     }
+
+    /**
+     * 获取保供套餐信息
+     *
+     * @param storeDetail 商店信息
+     * @return 购物车商品列表
+     */
+    public static List<GoodDto> getGoodsListByCategoryId(Map<String, Object> storeDetail) {
+        try {
+            HttpRequest httpRequest = HttpUtil.createPost("https://api-sams.walmartmobile.cn/api/v1/sams/goods-portal/grouping/list");
+            httpRequest.addHeaders(UserConfig.getHeaders());
+            Map<String, Object> request = UserConfig.getIdInfo();
+
+            request.put("pageSize", 20);
+            request.put("isReversOrder", false);
+            request.put("useNewPage", true);
+            request.put("frontCategoryIds", Arrays.asList("10012335", "10012336"));
+            request.put("isFastDelivery", false);
+            request.put("addressVO", new HashMap<>());
+            request.put("secondCategoryId", "156017");
+            request.put("pageNum", 1);
+
+            List<Map> storeList = new ArrayList();
+            Map<String, Object> store = new HashMap<>();
+            store.put("storeType", storeDetail.get("storeType"));
+            store.put("storeId", storeDetail.get("storeId"));
+            storeList.add(store);
+            request.put("storeInfoVOList", storeList);
+
+            httpRequest.body(JSONUtil.toJsonStr(request));
+            String body = httpRequest.execute().body();
+            JSONObject object = JSONUtil.parseObj(body);
+            if (!isSuccess(object, "获取保供套餐列表")) {
+                return null;
+            }
+            JSONArray goods = object.getJSONObject("data").getJSONArray("dataList");
+            List<GoodDto> goodDtos = new ArrayList<>();
+            for (int i = 0; i < goods.size(); i++) {
+                JSONObject good = goods.getJSONObject(i);
+                if (good.getJSONObject("stockInfo").getInt("stockQuantity") > 0) {
+                    GoodDto goodDto = new GoodDto();
+                    goodDto.setSpuId(good.getStr("spuId"));
+                    goodDto.setQuantity("1");
+                    goodDto.setStoreId(good.getStr("storeId"));
+                    goodDtos.add(goodDto);
+                    print(true, "【成功】检测到保供套餐：" + good.get("subTitle"));
+                }
+            }
+            if (goodDtos.isEmpty()){
+                print(false, "【失败】暂未获取到保供套餐");
+                return null;
+            }
+            return goodDtos;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
 }
