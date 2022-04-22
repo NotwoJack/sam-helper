@@ -72,8 +72,8 @@ public class Sentinel {
                 if (UserConfig.mode == 1) {
                     Boolean addFlag = false;
                     List<GoodDto> addGoodList = new ArrayList<>();
-                    for (int i = 0; i < loopTryCount; i++) {
-                        addGoodList = goodDtos.stream().filter(saveGoodList::contains).collect(Collectors.toList());
+                    for (int i = 0; i < loopTryCount && !addFlag ; i++) {
+                        addGoodList = goodDtos.stream().filter(goodDto -> !saveGoodList.contains(goodDto)).collect(Collectors.toList());
                         addFlag = Api.addCartGoodsInfo(addGoodList);
                         sleep(RandomUtil.randomInt(100, 500));
                     }
