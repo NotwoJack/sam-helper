@@ -7,6 +7,9 @@ import java.util.Map;
  */
 public class UserConfig {
 
+    //0:普通抢购模式 1：保供套餐抢购模式
+    public static final Integer mode = 1 ;
+
     //1：极速达 2：全城配送
     public static final String deliveryType = "2";
     //1：极速达 2：全城配送
@@ -32,12 +35,9 @@ public class UserConfig {
     return headers;
     }
 
-    /**
-     * 抓包小程序，在body中找到uid
-     */
     public static Map<String,Object> getIdInfo() {
         Map<String,Object> idInfo = new HashMap<>();
-        idInfo.put("uid", "181816666675");
+        idInfo.put("uid", "181817666575");
         idInfo.put("appId", "wxb344a8666eaaf849");
         idInfo.put("saasId", "1818");
         return idInfo;

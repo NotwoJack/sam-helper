@@ -434,21 +434,63 @@ public class Api {
                 if (good.getJSONObject("stockInfo").getInt("stockQuantity") > 0) {
                     GoodDto goodDto = new GoodDto();
                     goodDto.setSpuId(good.getStr("spuId"));
-                    goodDto.setQuantity("1");
+                    goodDto.setQuantity("4");
                     goodDto.setStoreId(good.getStr("storeId"));
                     goodDtos.add(goodDto);
-                    print(true, "【成功】检测到保供套餐：" + good.get("subTitle"));
+                    System.out.println(good.getStr("title") + "----" +good.getStr("subTitle"));
                 }
             }
             if (goodDtos.isEmpty()){
                 print(false, "【失败】暂未获取到保供套餐");
                 return null;
             }
+            print(true, "【成功】获取到保供套餐");
+            context.put("amount", 100);
             return goodDtos;
         } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
+    }
+
+    /**
+     * 将商品添加到购物车
+     *
+     * @param goodDtos 商品信息
+     * @return
+     */
+    public static Boolean addCartGoodsInfo(List<GoodDto> goodDtos) {
+        try {
+            HttpRequest httpRequest = HttpUtil.createPost("https://api-sams.walmartmobile.cn/api/v1/sams/trade/cart/addCartGoodsInfo");
+            httpRequest.addHeaders(UserConfig.getHeaders());
+            Map<String, Object> request = UserConfig.getIdInfo();
+
+            List<Map> cartGoodsInfoList = new ArrayList();
+            goodDtos.forEach(goodDto -> {
+                Map<String, Object> cartGoodsInfo = new HashMap<>();
+                cartGoodsInfo.put("componentPath", "1");
+                cartGoodsInfo.put("goodsName", "1");
+                cartGoodsInfo.put("price", "1");
+                cartGoodsInfo.put("event_tracking_id", "sam_app_cart_category_buy");
+                cartGoodsInfo.put("increaseQuantity", goodDto.getQuantity());
+                cartGoodsInfo.put("storeId", goodDto.getStoreId());
+                cartGoodsInfo.put("spuId",goodDto.getSpuId());
+                cartGoodsInfoList.add(cartGoodsInfo);
+            });
+            request.put("cartGoodsInfoList", cartGoodsInfoList);
+
+            httpRequest.body(JSONUtil.toJsonStr(request));
+            String body = httpRequest.execute().body();
+            JSONObject object = JSONUtil.parseObj(body);
+            if (!isSuccess(object, "添加商品至购物车")) {
+                return false;
+            }
+            print(true, "【成功】添加至购物车");
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
 }

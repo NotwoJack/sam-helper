@@ -1,7 +1,7 @@
 import cn.hutool.core.util.RandomUtil;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 哨兵捡漏模式 可长时间运行
@@ -30,6 +30,9 @@ public class Sentinel {
 
         Map<String, Map<String, Object>> init = Api.init();
 
+        Api.context.put("goodDtos", new ArrayList<GoodDto> ());
+        List<GoodDto> saveGoodList = new ArrayList<>();
+
         boolean first = true;
         while (!Api.context.containsKey("end")) {
             try {
@@ -38,7 +41,6 @@ public class Sentinel {
                 } else {
                     if (longWaitCount++ > 60) {
                         longWaitCount = 0;
-                        System.out.println("执行60次循环后，休息10分钟左右再继续");
                         sleep(RandomUtil.randomInt(50000, 70000));
                     } else {
                         sleep(RandomUtil.randomInt(sleepMillisMin, sleepMillisMax));
@@ -48,8 +50,11 @@ public class Sentinel {
                 List<GoodDto> goodDtos = null;
                 for (int i = 0; i < loopTryCount && goodDtos == null; i++) {
                     sleep(RandomUtil.randomInt(500, 1000));
-                    goodDtos = Api.getGoodsListByCategoryId(init.get("storeDetail"));//用于监控保供套餐
-//                    goodDtos = Api.getCart(init.get("storeDetail"));//用于获取购物车
+                    if (UserConfig.mode == 0) {
+                        goodDtos = Api.getCart(init.get("storeDetail"));
+                    } else if (UserConfig.mode == 1) {
+                        goodDtos = Api.getGoodsListByCategoryId(init.get("storeDetail"));
+                    }
                 }
                 if (goodDtos == null) {
                     continue;
@@ -64,11 +69,26 @@ public class Sentinel {
                     continue;
                 }
 
+                if (UserConfig.mode == 1) {
+                    Boolean addFlag = false;
+                    List<GoodDto> addGoodList = new ArrayList<>();
+                    for (int i = 0; i < loopTryCount; i++) {
+                        addGoodList = goodDtos.stream().filter(saveGoodList::contains).collect(Collectors.toList());
+                        addFlag = Api.addCartGoodsInfo(addGoodList);
+                        sleep(RandomUtil.randomInt(100, 500));
+                    }
+                    if (!addFlag) {
+                        continue;
+                    } else {
+                        saveGoodList.addAll(addGoodList);
+                    }
+                }
+
                 for (int i = 0; i < loopTryCount; i++) {
                     if (Api.commitPay(goodDtos, capacityData, init.get("deliveryAddressDetail"), init.get("storeDetail"))) {
-                        System.out.println("铃声持续1分钟，终止程序即可，如果还需要下单再继续运行程序");
-                        Api.play();
-                        break;
+//                        System.out.println("铃声持续1分钟，终止程序即可，如果还需要下单再继续运行程序");
+//                        Api.play();
+//                        break;
                     }
                     sleep(RandomUtil.randomInt(100, 500));
                 }

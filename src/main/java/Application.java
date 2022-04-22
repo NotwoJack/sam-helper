@@ -16,9 +16,9 @@ public class Application {
 
     public static void main(String[] args) {
 
-        //此为高峰期策略 通过同时获取或更新 购物车、配送、订单确认信息再进行高并发提交订单
+        //此为高峰期策略 通过同时获取或更新 购物车、配送时间信息再进行高并发提交订单
 
-        //一定要注意 并发量过高会导致被风控 请合理设置线程数、等待时间和执行时间 不要长时间的执行此程序（我配置的线程数和间隔 2分钟以内）
+        //一定要注意 使用该程序不要超过2分钟。并发量过高会导致被风控 请合理设置线程数、等待时间和执行时间 不要长时间的执行此程序
 
         //基础信息执行线程数
         int baseTheadSize = 1;
@@ -50,18 +50,13 @@ public class Application {
                     if (Api.context.get("goods") == null) {
                         continue;
                     }
-                    Map<String, Object> time = Api.getCapacityData(init.get("storeDetail"));
+                    Map<String, Object> time = Api.getGuessData(init.get("storeDetail"));
                     if (time != null) {
                         Api.context.put("time", time);
                     }
                 }
             }).start();
         }
-
-//        Map<String, Object> time = new HashMap<>();
-//        time.put("startRealTime","1650351600000");
-//        time.put("endRealTime","1650373200000");
-//        Api.context.put("time", time);
 
         for (int i = 0; i < submitOrderTheadSize; i++) {
             new Thread(() -> {
