@@ -8,7 +8,7 @@ import java.util.Map;
 public class UserConfig {
 
     //0:普通抢购模式 1：保供套餐抢购模式
-    public static final Integer mode = 0 ;
+    public static final Integer mode = 1 ;
 
     //1：极速达 2：全城配送
     public static final String deliveryType = "2";
