@@ -313,6 +313,13 @@ public class Api {
         return null;
     }
 
+    public static void barkNotice(String barkId) {
+        // sound=minuet 这里可在bark app选择自己喜爱的铃声
+        HttpRequest httpRequest = HttpUtil.createGet("https://api.day.app/" + barkId + "/抢到菜了，请立即支付?sound=minuet");
+        String body = httpRequest.execute().body();
+        System.out.println(body);
+    }
+
     /**
      * 提交订单
      *
