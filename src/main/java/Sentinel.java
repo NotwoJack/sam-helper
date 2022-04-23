@@ -31,6 +31,7 @@ public class Sentinel {
         Map<String, Map<String, Object>> init = Api.init();
 
         List<GoodDto> saveGoodList = new ArrayList<>();
+//        List<GoodDto> addGoodList = new ArrayList<>();
 
         boolean first = true;
         while (!Api.context.containsKey("end")) {
@@ -58,6 +59,10 @@ public class Sentinel {
                 if (goodDtos == null) {
                     continue;
                 }
+                if (saveGoodList.containsAll(goodDtos)){
+                    System.out.println("套餐已经下单");
+                    continue;
+                }
 
                 Map<String, Object> capacityData = null;
                 for (int i = 0; i < loopTryCount && capacityData == null; i++) {
@@ -70,23 +75,25 @@ public class Sentinel {
 
                 if (UserConfig.mode == 1) {
                     Boolean addFlag = false;
-                    List<GoodDto> addGoodList = new ArrayList<>();
-                    for (int i = 0; i < loopTryCount && !addFlag ; i++) {
-                        addGoodList = goodDtos.stream().filter(goodDto -> !saveGoodList.contains(goodDto)).collect(Collectors.toList());
-                        addFlag = Api.addCartGoodsInfo(addGoodList);
-                        sleep(RandomUtil.randomInt(100, 500));
+                    goodDtos.removeAll(saveGoodList);
+//                    addGoodList = goodDtos.stream().filter(goodDto -> !saveGoodList.contains(goodDto)).collect(Collectors.toList());
+                    if (!goodDtos.isEmpty()){
+                        for (int i = 0; i < loopTryCount && !addFlag ; i++) {
+                            addFlag = Api.addCartGoodsInfo(goodDtos);
+                            sleep(RandomUtil.randomInt(100, 500));
+                        }
                     }
                     if (!addFlag) {
                         continue;
                     } else {
-                        saveGoodList.addAll(addGoodList);
+                        saveGoodList.addAll(goodDtos);
                     }
                 }
 
                 for (int i = 0; i < loopTryCount; i++) {
                     if (Api.commitPay(goodDtos, capacityData, init.get("deliveryAddressDetail"), init.get("storeDetail"))) {
 //                        System.out.println("铃声持续1分钟，终止程序即可，如果还需要下单再继续运行程序");
-                        Api.play();
+//                        Api.play();
 //                        break;
                     }
                     sleep(RandomUtil.randomInt(100, 500));

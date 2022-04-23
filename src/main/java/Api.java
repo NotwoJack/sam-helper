@@ -192,7 +192,7 @@ public class Api {
                 if (!capcityResponse.getBool("dateISFull")){
                     JSONArray times = capcityResponse.getJSONArray("list");
                     for (int j = 0; j < times.size(); j++) {
-                        JSONObject time = times.getJSONObject(i);
+                        JSONObject time = times.getJSONObject(j);
                         if (!time.getBool("timeISFull")) {
                             map.put("startRealTime", time.get("startRealTime"));
                             map.put("endRealTime", time.get("endRealTime"));
@@ -387,7 +387,7 @@ public class Api {
                 return false;
             }
             context.put("success", new HashMap<>());
-            context.put("end", new HashMap<>());
+//            context.put("end", new HashMap<>());
             for (int i = 0; i < 10; i++) {
                 print(true, "恭喜你，已成功下单 当前下单总金额：" + context.get("amount") + "元");
             }
