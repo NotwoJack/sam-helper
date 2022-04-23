@@ -186,21 +186,23 @@ public class Api {
                 return null;
             }
             Map<String, Object> map = new HashMap<>();
-            Boolean dateCondition = object.getJSONObject("data").getJSONArray("capcityResponseList").getJSONObject(0).getBool("dateISFull");
-            if (dateCondition) {
-                print(false, "【失败】全部配送时间已满");
-            } else {
-                JSONArray times = object.getJSONObject("data").getJSONArray("capcityResponseList").getJSONObject(0).getJSONArray("list");
-                for (int i = 0; i < times.size(); i++) {
-                    JSONObject time = times.getJSONObject(i);
-                    if (!time.getBool("timeISFull")) {
-                        map.put("startRealTime", time.get("startRealTime"));
-                        map.put("endRealTime", time.get("endRealTime"));
-                        print(true, "【成功】更新配送时间:" + time.getStr("startTime") + " -- " + time.getStr("endTime"));
-                        return map;
+            JSONArray capcityResponseList = object.getJSONObject("data").getJSONArray("capcityResponseList");
+            for (int i = 0; i < capcityResponseList.size(); i++){
+                JSONObject capcityResponse = capcityResponseList.getJSONObject(i);
+                if (!capcityResponse.getBool("dateISFull")){
+                    JSONArray times = capcityResponse.getJSONArray("list");
+                    for (int j = 0; j < times.size(); j++) {
+                        JSONObject time = times.getJSONObject(i);
+                        if (!time.getBool("timeISFull")) {
+                            map.put("startRealTime", time.get("startRealTime"));
+                            map.put("endRealTime", time.get("endRealTime"));
+                            print(true, "【成功】更新配送时间:" + time.getStr("startTime") + " -- " + time.getStr("endTime"));
+                            return map;
+                        }
                     }
                 }
             }
+            print(false, "【失败】全部配送时间已满");
         } catch (JSONException e) {
             print(false, "【失败】并发过高被风控，请调整参数");
             e.printStackTrace();
