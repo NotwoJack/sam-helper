@@ -418,7 +418,7 @@ public class Api {
             request.put("frontCategoryIds", Arrays.asList("10012335", "10012336"));
             request.put("isFastDelivery", false);
             request.put("addressVO", new HashMap<>());
-            request.put("secondCategoryId", "156017");
+            request.put("secondCategoryId", "10012335");
             request.put("pageNum", 1);
 
             List<Map> storeList = new ArrayList();
@@ -441,7 +441,7 @@ public class Api {
                 if (good.getJSONObject("stockInfo").getInt("stockQuantity") > 0) {
                     GoodDto goodDto = new GoodDto();
                     goodDto.setSpuId(good.getStr("spuId"));
-                    goodDto.setQuantity("4");
+                    goodDto.setQuantity("1");
                     goodDto.setStoreId(good.getStr("storeId"));
                     goodDtos.add(goodDto);
                     System.out.println(good.getStr("title") + "----" +good.getStr("subTitle"));

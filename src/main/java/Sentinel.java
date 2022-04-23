@@ -30,7 +30,6 @@ public class Sentinel {
 
         Map<String, Map<String, Object>> init = Api.init();
 
-        Api.context.put("goodDtos", new ArrayList<GoodDto> ());
         List<GoodDto> saveGoodList = new ArrayList<>();
 
         boolean first = true;
@@ -87,7 +86,7 @@ public class Sentinel {
                 for (int i = 0; i < loopTryCount; i++) {
                     if (Api.commitPay(goodDtos, capacityData, init.get("deliveryAddressDetail"), init.get("storeDetail"))) {
 //                        System.out.println("铃声持续1分钟，终止程序即可，如果还需要下单再继续运行程序");
-//                        Api.play();
+                        Api.play();
 //                        break;
                     }
                     sleep(RandomUtil.randomInt(100, 500));
