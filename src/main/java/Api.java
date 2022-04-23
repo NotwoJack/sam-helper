@@ -325,23 +325,19 @@ public class Api {
         return null;
     }
 
-    private static void barkNotice(String barkId) {
+    public static void barkNotice(String barkId) {
         // sound=minuet 这里可在bark app选择自己喜爱的铃声
         HttpRequest httpRequest = HttpUtil.createGet("https://api.day.app/" + barkId + "/抢购成功，请及时付款?sound=minuet");
         String body = httpRequest.execute().body();
         System.out.println(body);
     }
 
-    private static void ftqqNotice(String sendKey) {
-        HttpRequest httpRequest = HttpUtil.createPost("https://sctapi.ftqq.com/" + sendKey + ".send");
+    public static void ftqqNotice(String sendKey) {
+        HttpRequest httpRequest = HttpUtil.createPost("https://sctapi.ftqq.com/" + sendKey + ".send?title=【山姆sam-helper】提醒&desp=抢购成功，请及时付款！");
         Map<String, String> headers = new HashMap<>();
         headers.put("Content-Type", "application/x-www-form-urlencoded");
         httpRequest.addHeaders(headers);
 
-        Map<String, Object> request = new HashMap<>();
-        request.put("text", "【山姆sam-helper】提醒");
-        request.put("desp", "抢购成功，请及时付款！");
-        httpRequest.body(JSONUtil.toJsonStr(request));
         String body = httpRequest.execute().body();
         System.out.println(body);
     }

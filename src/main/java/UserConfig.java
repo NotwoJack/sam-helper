@@ -16,10 +16,10 @@ public class UserConfig {
     public static final String cartDeliveryType = "2";
     //commitPay接口中可以抓到，非必填项，不需要修改
     public static final String labelList = "[{\"attachId\":\"1649949934151-1a291f41-999c-4859-8f7e-f64516ac292f\",\"createTime\":1649949934287,\"labelType\":\"tracking_id\"},{\"attachId\":1074,\"createTime\":1649949934289,\"labelType\":\"scene_xcx\"}]";
-    //bark通知id
+    //bark通知id，可选参数
     public static final String barkId = "";
-    //Server酱 用户 Token，获取方式：https://sct.ftqq.com/sendkey
-    public static final String ftqqSendKey = "SCT140968TTdFBiL8zCFB4u9goIVH1KpoU";
+    //Server酱 用户 Token，可选参数，获取方式：https://sct.ftqq.com/sendkey
+    public static final String ftqqSendKey = "";
     /**
      * 抓包小程序，在headers中找到auth-token
      */
@@ -34,7 +34,7 @@ public class UserConfig {
         headers.put("Accept-Language", "zh-CN,zh;q=0.9");
         headers.put("User-Agent", "SamClub/5.0.45 (iPhone; iOS 15.4; Scale/3.00)");
         headers.put("device-type", "mini_program");
-        headers.put("auth-token", "89cd13dc3ea0477291309ed21735b1e3c50f4d30e3758cca4ef3bba025f74fd2");
+        headers.put("auth-token", "需要填写");
     return headers;
     }
 
