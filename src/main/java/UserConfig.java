@@ -12,11 +12,9 @@ public class UserConfig {
 
     //1：极速达 2：全城配送
     public static final String deliveryType = "2";
-    //1：极速达 2：全城配送
-    public static final String cartDeliveryType = "2";
-    //commitPay接口中可以抓到，非必填项，不需要修改
-    public static final String labelList = "[{\"attachId\":\"1649949934151-1a291f41-999c-4859-8f7e-f64516ac292f\",\"createTime\":1649949934287,\"labelType\":\"tracking_id\"},{\"attachId\":1074,\"createTime\":1649949934289,\"labelType\":\"scene_xcx\"}]";
-    //bark通知id，可选参数
+    //极速达下单目标金额
+    public static final Integer targetAmount = 0;
+    //bark通知id
     public static final String barkId = "";
     //Server酱 用户 Token，可选参数，获取方式：https://sct.ftqq.com/sendkey
     public static final String ftqqSendKey = "";
@@ -35,7 +33,7 @@ public class UserConfig {
         headers.put("User-Agent", "SamClub/5.0.45 (iPhone; iOS 15.4; Scale/3.00)");
         headers.put("device-type", "mini_program");
         headers.put("auth-token", "需要填写");
-    return headers;
+        return headers;
     }
 
     public static Map<String,Object> getIdInfo() {

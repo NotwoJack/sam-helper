@@ -4,7 +4,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 哨兵捡漏模式 可长时间运行
+ * 哨兵捡漏模式 可长时间运行。
+ * 用于极速达捡漏，可以在UserConfig中设置下单目标金额
  */
 public class Sentinel {
 
@@ -23,7 +24,7 @@ public class Sentinel {
         int sleepMillisMax = 20000;
 
         //单轮轮询时请求异常（服务器高峰期限流策略）尝试次数
-        int loopTryCount = 5;
+        int loopTryCount = 8;
 
         //60次以后长时间等待10分钟左右
         int longWaitCount = 0;
@@ -46,17 +47,25 @@ public class Sentinel {
 
                 List<GoodDto> goodDtos = null;
                 for (int i = 0; i < loopTryCount && goodDtos == null; i++) {
-                    sleep(RandomUtil.randomInt(500, 1000));
                     goodDtos = Api.getCart(init.get("storeDetail"));
+                    if (goodDtos == null){
+                        sleep(RandomUtil.randomInt(500, 1000));
+                    }
                 }
                 if (goodDtos == null) {
+                    continue;
+                }
+                if ((Double)Api.context.get("amount") < UserConfig.targetAmount){
+                    Api.print(false, "【失败】购物车未达到目标金额");
                     continue;
                 }
 
                 Map<String, Object> capacityData = null;
                 for (int i = 0; i < loopTryCount && capacityData == null; i++) {
-                    sleep(RandomUtil.randomInt(500, 1000));
                     capacityData = Api.getCapacityData(init.get("storeDetail"));
+                    if (capacityData == null){
+                        sleep(RandomUtil.randomInt(500, 1000));
+                    }
                 }
                 if (capacityData == null) {
                     continue;
@@ -65,7 +74,6 @@ public class Sentinel {
                 for (int i = 0; i < loopTryCount; i++) {
                     if (Api.commitPay(goodDtos, capacityData, init.get("deliveryAddressDetail"), init.get("storeDetail"))) {
                         Api.play();
-//                        break;
                     }
                     sleep(RandomUtil.randomInt(100, 500));
                 }
