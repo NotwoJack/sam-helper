@@ -21,7 +21,7 @@ public class GuaranteeSentinel {
         //执行任务请求间隔时间最小值
         int sleepMillisMin = 10000;
         //执行任务请求间隔时间最大值
-        int sleepMillisMax = 30000;
+        int sleepMillisMax = 20000;
 
         //单轮轮询时请求异常（服务器高峰期限流策略）尝试次数
         int loopTryCount = 5;

@@ -484,8 +484,16 @@ public class Api {
                     goodDto.setQuantity("1");
                     goodDto.setStoreId(good.getStr("storeId"));
                     goodDtos.add(goodDto);
-                    double price = good.getJSONArray("priceInfo").getJSONObject(2).getDouble("price") / 100;
-                    System.out.println(good.getStr("title") + " 价格：" + price + " 剩余库存："+ stockQuantity + "----" + good.getStr("subTitle"));
+                    JSONArray priceInfoList = good.getJSONArray("priceInfo");
+                    Iterator<Object> iterator = priceInfoList.iterator();
+                    double price = 0;
+                    while (iterator.hasNext()){
+                        JSONObject priceInfo = (JSONObject) iterator.next();
+                        if (priceInfo.getInt("priceType") == 4){
+                            price = priceInfo.getDouble("price") / 100;
+                        }
+                    }
+                    System.out.println(good.getStr("title") + " 价格：" + price + " 剩余库存："+ stockQuantity + "\n" + good.getStr("subTitle"));
                 }
             }
             if (goodDtos.isEmpty()){
