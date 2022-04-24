@@ -29,7 +29,7 @@ public class GuaranteeSentinel {
         //60次以后长时间等待10分钟左右
         int longWaitCount = 0;
 
-        Map<String, Map<String, Object>> init = Api.init();
+        Map<String, Map<String, Object>> init = Api.init(UserConfig.deliveryType);
 
         List<GoodDto> saveGoodList = new ArrayList<>();
 //        List<GoodDto> addGoodList = new ArrayList<>();

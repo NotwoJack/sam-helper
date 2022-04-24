@@ -32,13 +32,13 @@ public class Api {
      *
      * @return 信息集合
      */
-    public static Map<String, Map<String, Object>> init() {
+    public static Map<String, Map<String, Object>> init(String deliveryType) {
         try {
-            if ("1".equals(UserConfig.deliveryType)){
+            if ("1".equals(deliveryType)){
                 context.put("deliveryType", "1");
                 context.put("cartDeliveryType", "1");
                 context.put("storeType", 4);
-            } else if ("2".equals(UserConfig.deliveryType)){
+            } else if ("2".equals(deliveryType)){
                 context.put("deliveryType", "2");
                 context.put("cartDeliveryType", "2");
                 context.put("storeType", 2);
@@ -478,7 +478,7 @@ public class Api {
             for (int i = 0; i < goods.size(); i++) {
                 JSONObject good = goods.getJSONObject(i);
                 Integer stockQuantity = good.getJSONObject("stockInfo").getInt("stockQuantity");
-                if (stockQuantity > 0) {
+                if (stockQuantity >= 0) {
                     GoodDto goodDto = new GoodDto();
                     goodDto.setSpuId(good.getStr("spuId"));
                     goodDto.setQuantity("1");

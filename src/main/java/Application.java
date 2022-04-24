@@ -31,7 +31,7 @@ public class Application {
         int sleepMillis = 200;
 
         //先初始化 获得必要的参数
-        Map<String, Map<String, Object>> init = Api.init();
+        Map<String, Map<String, Object>> init = Api.init(UserConfig.deliveryType);
 
         for (int i = 0; i < baseTheadSize; i++) {
             new Thread(() -> {

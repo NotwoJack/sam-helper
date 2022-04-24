@@ -10,8 +10,9 @@ public class ApplicationTest {
 
     public static void main(String[] args) {
         //先初始化 获得必要的参数
-        Map<String, Map<String, Object>> init = Api.init();
-        List<GoodDto> goodDtos = Api.getCart(init.get("storeDetail"));
+        Map<String, Map<String, Object>> init = Api.init(UserConfig.deliveryType);
+        List<GoodDto> goodDtos = Api.getGoodsListByCategoryId(init.get("storeDetail"));
+//        Api.getCapacityData(init.get("storeDetail"));
 //        List<GoodDto> goodDtos = new ArrayList<>();
 //        GoodDto goodDto = new GoodDto();
 //        goodDto.setQuantity("1");
@@ -19,5 +20,6 @@ public class ApplicationTest {
 //        goodDto.setStoreId("4807");
 //        goodDtos.add(goodDto);
 //        Api.addCartGoodsInfo(goodDtos);
+//        Api.play();
        }
 }
