@@ -478,7 +478,7 @@ public class Api {
             for (int i = 0; i < goods.size(); i++) {
                 JSONObject good = goods.getJSONObject(i);
                 Integer stockQuantity = good.getJSONObject("stockInfo").getInt("stockQuantity");
-                if (stockQuantity >= 0) {
+                if (stockQuantity > 0) {
                     GoodDto goodDto = new GoodDto();
                     goodDto.setSpuId(good.getStr("spuId"));
                     goodDto.setQuantity("1");
