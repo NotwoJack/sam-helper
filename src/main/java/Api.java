@@ -427,9 +427,7 @@ public class Api {
                 return false;
             }
             context.put("success", new HashMap<>());
-            for (int i = 0; i < 10; i++) {
-                System.out.println("恭喜你，已成功下单 当前下单总金额：" + context.get("amount") + "元");
-            }
+            print(true,"【恭喜你】已成功下单 当前下单总金额：" + context.get("amount") + "元");
             return true;
         } catch (JSONException e) {
             print(false, "【失败】请求过快被风控，请调整参数");
@@ -483,7 +481,7 @@ public class Api {
                 if (stockQuantity > 0) {
                     GoodDto goodDto = new GoodDto();
                     goodDto.setSpuId(good.getStr("spuId"));
-                    goodDto.setQuantity("4");
+                    goodDto.setQuantity("1");
                     goodDto.setStoreId(good.getStr("storeId"));
                     goodDtos.add(goodDto);
                     double price = good.getJSONArray("priceInfo").getJSONObject(2).getDouble("price") / 100;

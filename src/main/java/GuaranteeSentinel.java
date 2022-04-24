@@ -94,17 +94,8 @@ public class GuaranteeSentinel {
                 for (int i = 0; i < loopTryCount; i++) {
                     if (Api.commitPay(goodDtos, capacityData, init.get("deliveryAddressDetail"), init.get("storeDetail"))) {
 //                        System.out.println("铃声持续1分钟，终止程序即可，如果还需要下单再继续运行程序");
-//                        Api.play();
+                        Api.play();
 //                        break;
-                        // bark推送
-                        if (!UserConfig.barkId.isEmpty()) {
-                            Api.barkNotice(UserConfig.barkId);
-                        }
-
-                        // Server 酱推送
-                        if (!UserConfig.ftqqSendKey.isEmpty()) {
-                            Api.ftqqNotice(UserConfig.ftqqSendKey);
-                        }
                     }
                     sleep(RandomUtil.randomInt(100, 500));
                 }
