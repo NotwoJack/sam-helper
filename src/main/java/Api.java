@@ -14,6 +14,7 @@ import java.applet.Applet;
 import java.applet.AudioClip;
 import java.io.File;
 import java.math.BigDecimal;
+import java.net.MalformedURLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -33,6 +34,15 @@ public class Api {
      */
     public static Map<String, Map<String, Object>> init() {
         try {
+            if ("1".equals(UserConfig.deliveryType)){
+                context.put("deliveryType", "1");
+                context.put("cartDeliveryType", "1");
+                context.put("storeType", 4);
+            } else if ("2".equals(UserConfig.deliveryType)){
+                context.put("deliveryType", "2");
+                context.put("cartDeliveryType", "2");
+                context.put("storeType", 2);
+            }
             Map<String, Map<String, Object>> map = new HashMap<>();
             Map<String, Object> deliveryAddressDetail = getDeliveryAddressDetail();
             Map<String, Object> storeDetail = getMiniUnLoginStoreList(Double.parseDouble((String) deliveryAddressDetail.get("latitude")), Double.parseDouble((String) deliveryAddressDetail.get("longitude")));
@@ -47,23 +57,32 @@ public class Api {
 
     @SneakyThrows
     public static void play() {
-        // bark推送
-        if (!UserConfig.barkId.isEmpty()) {
-            barkNotice(UserConfig.barkId);
-        }
-
-        // Server 酱推送
-        if (!UserConfig.ftqqSendKey.isEmpty()) {
-            ftqqNotice(UserConfig.ftqqSendKey);
-        }
-
-        //这里还可以使用企业微信或者钉钉的提供的webhook  自己写代码 很简单 就是按对应数据格式发一个请求到企业微信或者钉钉
-        AudioClip audioClip = Applet.newAudioClip(new File("ding-dong.wav").toURL());
-        audioClip.loop();
-        Thread.sleep(60000);//响铃60秒
+        new Thread(() -> {
+            while (true){
+                // bark推送
+                if (!UserConfig.barkId.isEmpty()) {
+                    barkNotice(UserConfig.barkId);
+                }
+                // Server 酱推送
+                if (!UserConfig.ftqqSendKey.isEmpty()) {
+                    ftqqNotice(UserConfig.ftqqSendKey);
+                }
+                //这里还可以使用企业微信或者钉钉的提供的webhook  自己写代码 很简单 就是按对应数据格式发一个请求到企业微信或者钉钉
+                try {
+                    AudioClip audioClip = Applet.newAudioClip(new File("ding-dong.wav").toURL());
+                    audioClip.loop();
+                    Thread.sleep(6000);//响铃6秒
+                } catch (MalformedURLException e) {
+                    throw new RuntimeException(e);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                break;
+            }
+        }).start();
     }
 
-    private static void print(boolean normal, String message) {
+    public static void print(boolean normal, String message) {
         if (Api.context.containsKey("end")) {
             return;
         }
@@ -152,7 +171,7 @@ public class Api {
             Iterator<Object> iterator = storeList.iterator();
             while (iterator.hasNext()) {
                 JSONObject store = (JSONObject) iterator.next();
-                if (store.getInt("storeType") == 2) {
+                if (store.getInt("storeType").equals(context.get("storeType"))) {
                     map.put("storeType", store.getStr("storeType"));
                     map.put("storeId", store.getStr("storeId"));
                     map.put("storeDeliveryTemplateId", store.getJSONObject("storeRecmdDeliveryTemplateData").getStr("storeDeliveryTemplateId"));
@@ -214,7 +233,7 @@ public class Api {
             }
             print(false, "【失败】全部配送时间已满");
         } catch (JSONException e) {
-            print(false, "【失败】并发过高被风控，请调整参数");
+            print(false, "【失败】请求过快被风控，请调整参数");
             e.printStackTrace();
             System.exit(0);
         } catch (Exception e) {
@@ -229,6 +248,7 @@ public class Api {
      * @param storeDetail 商店信息
      * @return 配送信息Map
      */
+    @Deprecated
     public static Map<String, Object> getGuessData(Map<String, Object> storeDetail) {
         try {
             HttpRequest httpRequest = HttpUtil.createPost("https://api-sams.walmartmobile.cn/api/v1/sams/delivery/portal/getCapacityData");
@@ -339,7 +359,7 @@ public class Api {
         httpRequest.addHeaders(headers);
 
         String body = httpRequest.execute().body();
-        System.out.println(body);
+        print(true, body);
     }
 
     /**
@@ -364,10 +384,10 @@ public class Api {
             request.put("invoiceInfo", new HashMap<>());
             request.put("sceneCode", 1074);
             request.put("isSelectShoppingNotes", true);
-            request.put("cartDeliveryType", UserConfig.cartDeliveryType);
+            request.put("cartDeliveryType", context.get("cartDeliveryType"));
             request.put("couponList", new ArrayList<>());
             request.put("floorId", 1);
-            request.put("amount", context.get("amount"));
+            request.put("amount", 100);
             request.put("payType", 0);
             request.put("currency", "CNY");
             request.put("channel", "wechat");
@@ -376,7 +396,7 @@ public class Api {
             request.put("remark", "");
             request.put("addressId", deliveryAddressDetail.get("addressId"));
             request.put("shortageDesc", "其他商品继续配送（缺货商品直接退款）");
-            request.put("labelList", UserConfig.labelList);
+            request.put("labelList", "[{\"attachId\":\"1649949934151-1a291f41-999c-4859-8f7e-f64516ac292f\",\"createTime\":1649949934287,\"labelType\":\"tracking_id\"},{\"attachId\":1074,\"createTime\":1649949934289,\"labelType\":\"scene_xcx\"}]");
             request.put("payMethodId", "contract");
 
             Map<String, Object> deliveryInfoVO = new HashMap<>();
@@ -388,7 +408,7 @@ public class Api {
             Map<String, Object> settleDeliveryInfo = new HashMap<>();
             settleDeliveryInfo.put("expectArrivalTime", capacityData.get("startRealTime"));
             settleDeliveryInfo.put("expectArrivalEndTime", capacityData.get("endRealTime"));
-            settleDeliveryInfo.put("deliveryType", UserConfig.deliveryType);
+            settleDeliveryInfo.put("deliveryType", context.get("deliveryType"));
             request.put("settleDeliveryInfo", settleDeliveryInfo);
 
             Map<String, Object> storeInfo = new HashMap<>();
@@ -407,13 +427,12 @@ public class Api {
                 return false;
             }
             context.put("success", new HashMap<>());
-//            context.put("end", new HashMap<>());
             for (int i = 0; i < 10; i++) {
-                print(true, "恭喜你，已成功下单 当前下单总金额：" + context.get("amount") + "元");
+                System.out.println("恭喜你，已成功下单 当前下单总金额：" + context.get("amount") + "元");
             }
             return true;
         } catch (JSONException e) {
-            print(false, "【失败】并发过高被风控，请调整参数");
+            print(false, "【失败】请求过快被风控，请调整参数");
             e.printStackTrace();
             System.exit(0);
         } catch (Exception e) {
@@ -460,13 +479,15 @@ public class Api {
             List<GoodDto> goodDtos = new ArrayList<>();
             for (int i = 0; i < goods.size(); i++) {
                 JSONObject good = goods.getJSONObject(i);
-                if (good.getJSONObject("stockInfo").getInt("stockQuantity") > 0) {
+                Integer stockQuantity = good.getJSONObject("stockInfo").getInt("stockQuantity");
+                if (stockQuantity > 0) {
                     GoodDto goodDto = new GoodDto();
                     goodDto.setSpuId(good.getStr("spuId"));
-                    goodDto.setQuantity("1");
+                    goodDto.setQuantity("4");
                     goodDto.setStoreId(good.getStr("storeId"));
                     goodDtos.add(goodDto);
-                    System.out.println(good.getStr("title") + "----" +good.getStr("subTitle"));
+                    double price = good.getJSONArray("priceInfo").getJSONObject(2).getDouble("price") / 100;
+                    System.out.println(good.getStr("title") + " 价格：" + price + " 剩余库存："+ stockQuantity + "----" + good.getStr("subTitle"));
                 }
             }
             if (goodDtos.isEmpty()){
@@ -474,7 +495,6 @@ public class Api {
                 return null;
             }
             print(true, "【成功】获取到保供套餐");
-            context.put("amount", 100);
             return goodDtos;
         } catch (Exception e) {
             e.printStackTrace();
