@@ -137,6 +137,9 @@ public class Api {
             map.put("addressId", data.getStr("addressId"));
             map.put("latitude", data.getStr("latitude"));
             map.put("longitude", data.getStr("longitude"));
+            print(true, "【成功】获取下单信息"
+                    + " 下单地址：" + data.getStr("cityName") + data.getStr("districtName") + data.getStr("detailAddress")
+                    + " 收货人：" + data.getStr("name") + " 手机号：" + data.getStr("phone"));
             return map;
         } catch (Exception e) {
             e.printStackTrace();
@@ -184,6 +187,7 @@ public class Api {
                 print(false, "【失败】未获取到商店信息");
                 return null;
             }
+            print(true, "【成功】获取商店信息" + " 商店名称：" + map.get("storeName") + " 商店ID：" + map.get("storeId"));
             return map;
         } catch (Exception e) {
             e.printStackTrace();
