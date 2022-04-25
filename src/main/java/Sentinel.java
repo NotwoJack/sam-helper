@@ -1,5 +1,6 @@
 import cn.hutool.core.util.RandomUtil;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -29,8 +30,6 @@ public class Sentinel {
         //60次以后长时间等待10分钟左右
         int longWaitCount = 0;
 
-        Map<String, Map<String, Object>> init = Api.init(UserConfig.deliveryType);
-
         boolean first = true;
         while (!Api.context.containsKey("end")) {
             try {
@@ -45,17 +44,28 @@ public class Sentinel {
                     }
                 }
 
+                Map<String, Map<String, Object>> init = new HashMap<>();
+                for (int i = 0; i < loopTryCount && (init.get("deliveryAddressDetail") == null || init.get("storeDetail") == null); i++) {
+                    init = Api.init(UserConfig.deliveryType);
+                    if (init.get("deliveryAddressDetail") == null || init.get("storeDetail") == null) {
+                        sleep(RandomUtil.randomInt(500, 1000));
+                    }
+                }
+                if (init.get("deliveryAddressDetail") == null || init.get("storeDetail") == null) {
+                    continue;
+                }
+
                 List<GoodDto> goodDtos = null;
                 for (int i = 0; i < loopTryCount && goodDtos == null; i++) {
                     goodDtos = Api.getCart(init.get("storeDetail"));
-                    if (goodDtos == null){
+                    if (goodDtos == null) {
                         sleep(RandomUtil.randomInt(500, 1000));
                     }
                 }
                 if (goodDtos == null) {
                     continue;
                 }
-                if ((Double)Api.context.get("amount") < UserConfig.targetAmount){
+                if ((Double) Api.context.get("amount") < UserConfig.targetAmount) {
                     Api.print(false, "【失败】购物车未达到目标金额");
                     continue;
                 }
@@ -63,7 +73,7 @@ public class Sentinel {
                 Map<String, Object> capacityData = null;
                 for (int i = 0; i < loopTryCount && capacityData == null; i++) {
                     capacityData = Api.getCapacityData(init.get("storeDetail"));
-                    if (capacityData == null){
+                    if (capacityData == null) {
                         sleep(RandomUtil.randomInt(500, 1000));
                     }
                 }

@@ -180,6 +180,10 @@ public class Api {
                     map.put("storeName", store.getStr("storeName"));
                 }
             }
+            if (map.isEmpty()){
+                print(false, "【失败】未获取到商店信息");
+                return null;
+            }
             return map;
         } catch (Exception e) {
             e.printStackTrace();
@@ -327,7 +331,7 @@ public class Api {
                 List<GoodDto> goodDtos = new ArrayList<>();
                 for (int i = 0; i < goods.size(); i++) {
                     JSONObject good = goods.getJSONObject(i);
-                    if (good.getBool("isSelected")) {
+                    if (good.getBool("isSelected") && (Objects.equals(good.getInt("storeType"), storeDetail.get("storeType")))) {
                         GoodDto goodDto = new GoodDto();
                         goodDto.setSpuId(good.getStr("spuId"));
                         goodDto.setQuantity(good.getStr("quantity"));
