@@ -137,8 +137,8 @@ public class Api {
             map.put("addressId", data.getStr("addressId"));
             map.put("latitude", data.getStr("latitude"));
             map.put("longitude", data.getStr("longitude"));
-            print(true, "【成功】获取下单信息"
-                    + " 下单地址：" + data.getStr("cityName") + data.getStr("districtName") + data.getStr("detailAddress")
+            print(true, "【成功】获取收货地址"
+                    + " 收货地址：" + data.getStr("cityName") + data.getStr("districtName") + data.getStr("detailAddress")
                     + " 收货人：" + data.getStr("name") + " 手机号：" + data.getStr("phone"));
             return map;
         } catch (Exception e) {
@@ -175,7 +175,7 @@ public class Api {
             while (iterator.hasNext()) {
                 JSONObject store = (JSONObject) iterator.next();
                 if (store.getInt("storeType").equals(context.get("storeType"))) {
-                    map.put("storeType", store.getStr("storeType"));
+                    map.put("storeType", store.getInt("storeType"));
                     map.put("storeId", store.getStr("storeId"));
                     map.put("storeDeliveryTemplateId", store.getJSONObject("storeRecmdDeliveryTemplateData").getStr("storeDeliveryTemplateId"));
                     map.put("areaBlockId", store.getJSONObject("storeAreaBlockVerifyData").getStr("areaBlockId"));
@@ -483,6 +483,7 @@ public class Api {
             }
             JSONArray goods = object.getJSONObject("data").getJSONArray("dataList");
             List<GoodDto> goodDtos = new ArrayList<>();
+            double amount = 0;
             for (int i = 0; i < goods.size(); i++) {
                 JSONObject good = goods.getJSONObject(i);
                 Integer stockQuantity = good.getJSONObject("stockInfo").getInt("stockQuantity");
@@ -501,14 +502,16 @@ public class Api {
                             price = priceInfo.getDouble("price") / 100;
                         }
                     }
+                    amount = amount + price;
                     System.out.println(good.getStr("title") + " 价格：" + price + " 剩余库存："+ stockQuantity + "\n" + good.getStr("subTitle"));
                 }
             }
             if (goodDtos.isEmpty()){
-                print(false, "【失败】暂未获取到保供套餐");
+                print(false, "【失败】暂未获取到有货的保供套餐");
                 return null;
             }
             print(true, "【成功】获取到保供套餐");
+            context.put("amount",amount);
             return goodDtos;
         } catch (Exception e) {
             e.printStackTrace();
