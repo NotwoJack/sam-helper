@@ -32,7 +32,7 @@ public class Api {
      *
      * @return 信息集合
      */
-    public static Map<String, Map<String, Object>> init(String deliveryType) {
+    public static Boolean init(String deliveryType) {
         try {
             if ("1".equals(deliveryType)){
                 context.put("deliveryType", "1");
@@ -43,12 +43,11 @@ public class Api {
                 context.put("cartDeliveryType", "2");
                 context.put("storeType", 2);
             }
-            Map<String, Map<String, Object>> map = new HashMap<>();
-            Map<String, Object> deliveryAddressDetail = getDeliveryAddressDetail();
-            Map<String, Object> storeDetail = getMiniUnLoginStoreList(Double.parseDouble((String) deliveryAddressDetail.get("latitude")), Double.parseDouble((String) deliveryAddressDetail.get("longitude")));
-            map.put("deliveryAddressDetail", deliveryAddressDetail);
-            map.put("storeDetail", storeDetail);
-            return map;
+//            Map<String, Object> deliveryAddressDetail = getDeliveryAddressDetail();
+//            Map<String, Object> storeDetail = getMiniUnLoginStoreList(Double.parseDouble((String) deliveryAddressDetail.get("latitude")), Double.parseDouble((String) deliveryAddressDetail.get("longitude")));
+//            context.put("deliveryAddressDetail", deliveryAddressDetail);
+//            context.put("storeDetail", storeDetail);
+            return true;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -184,7 +183,7 @@ public class Api {
                 }
             }
             if (map.isEmpty()){
-                print(false, "【失败】未获取到商店信息");
+                print(false, "【失败】未获取到商店信息/商店未营业");
                 return null;
             }
             print(true, "【成功】获取商店信息" + " 商店名称：" + map.get("storeName") + " 商店ID：" + map.get("storeId"));
@@ -327,7 +326,7 @@ public class Api {
             }
             Integer selectedNumber = object.getJSONObject("data").getInt("selectedNumber");
             if (selectedNumber == 0) {
-                print(false, "购物车为空");
+                print(false, "【失败】购物车目前暂无可下单商品");
                 return null;
             } else {
                 double amount = object.getJSONObject("data").getDouble("selectedAmount") / 100;
@@ -357,7 +356,6 @@ public class Api {
         // sound=minuet 这里可在bark app选择自己喜爱的铃声
         HttpRequest httpRequest = HttpUtil.createGet("https://api.day.app/" + barkId + "/抢购成功，请及时付款?sound=minuet");
         String body = httpRequest.execute().body();
-        System.out.println(body);
     }
 
     public static void ftqqNotice(String sendKey) {
@@ -365,9 +363,7 @@ public class Api {
         Map<String, String> headers = new HashMap<>();
         headers.put("Content-Type", "application/x-www-form-urlencoded");
         httpRequest.addHeaders(headers);
-
         String body = httpRequest.execute().body();
-        print(true, body);
     }
 
     /**

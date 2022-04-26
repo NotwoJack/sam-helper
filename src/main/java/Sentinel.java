@@ -20,15 +20,17 @@ public class Sentinel {
     public static void main(String[] args) {
 
         //执行任务请求间隔时间最小值
-        int sleepMillisMin = 10000;
+        int sleepMillisMin = 5000;
         //执行任务请求间隔时间最大值
-        int sleepMillisMax = 20000;
+        int sleepMillisMax = 10000;
 
         //单轮轮询时请求异常（服务器高峰期限流策略）尝试次数
         int loopTryCount = 8;
 
         //60次以后长时间等待10分钟左右
         int longWaitCount = 0;
+
+        Api.init(UserConfig.deliveryType);
 
         boolean first = true;
         while (!Api.context.containsKey("end")) {
@@ -44,20 +46,35 @@ public class Sentinel {
                     }
                 }
 
-                Map<String, Map<String, Object>> init = new HashMap<>();
-                for (int i = 0; i < loopTryCount && (init.get("deliveryAddressDetail") == null || init.get("storeDetail") == null); i++) {
-                    init = Api.init(UserConfig.deliveryType);
-                    if (init.get("deliveryAddressDetail") == null || init.get("storeDetail") == null) {
+                for (int i = 0; i < loopTryCount && (Api.context.get("deliveryAddressDetail") == null); i++) {
+                    Map<String, Object> deliveryAddressDetail = Api.getDeliveryAddressDetail();
+                    if (deliveryAddressDetail == null) {
                         sleep(RandomUtil.randomInt(500, 1000));
+                        continue;
                     }
+                    Api.context.put("latitude", deliveryAddressDetail.get("latitude"));
+                    Api.context.put("longitude", deliveryAddressDetail.get("longitude"));
+                    Api.context.put("deliveryAddressDetail", deliveryAddressDetail);
                 }
-                if (init.get("deliveryAddressDetail") == null || init.get("storeDetail") == null) {
+                if (Api.context.get("deliveryAddressDetail") == null) {
+                    continue;
+                }
+
+                for (int i = 0; i < loopTryCount && (Api.context.get("storeDetail") == null); i++) {
+                    Map<String, Object> storeDetail = Api.getMiniUnLoginStoreList(Double.parseDouble((String) Api.context.get("latitude")), Double.parseDouble((String) Api.context.get("longitude")));
+                    if (storeDetail == null) {
+                        sleep(RandomUtil.randomInt(500, 1000));
+                        continue;
+                    }
+                    Api.context.put("storeDetail", storeDetail);
+                }
+                if (Api.context.get("storeDetail") == null) {
                     continue;
                 }
 
                 List<GoodDto> goodDtos = null;
                 for (int i = 0; i < loopTryCount && goodDtos == null; i++) {
-                    goodDtos = Api.getCart(init.get("storeDetail"));
+                    goodDtos = Api.getCart((Map<String, Object>) Api.context.get("storeDetail"));
                     if (goodDtos == null) {
                         sleep(RandomUtil.randomInt(500, 1000));
                     }
@@ -72,7 +89,7 @@ public class Sentinel {
 
                 Map<String, Object> capacityData = null;
                 for (int i = 0; i < loopTryCount && capacityData == null; i++) {
-                    capacityData = Api.getCapacityData(init.get("storeDetail"));
+                    capacityData = Api.getCapacityData((Map<String, Object>) Api.context.get("storeDetail"));
                     if (capacityData == null) {
                         sleep(RandomUtil.randomInt(500, 1000));
                     }
@@ -81,11 +98,12 @@ public class Sentinel {
                     continue;
                 }
 
-                for (int i = 0; i < loopTryCount; i++) {
-                    if (Api.commitPay(goodDtos, capacityData, init.get("deliveryAddressDetail"), init.get("storeDetail"))) {
+                for (int i = 0; i < 50; i++) {
+                    if (Api.commitPay(goodDtos, capacityData, (Map<String, Object>) Api.context.get("deliveryAddressDetail"), (Map<String, Object>) Api.context.get("storeDetail"))) {
                         Api.play();
+                        break;
                     }
-                    sleep(RandomUtil.randomInt(100, 500));
+                    sleep(RandomUtil.randomInt(100, 200));
                 }
 
             } catch (Exception e) {

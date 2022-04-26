@@ -18,18 +18,22 @@ public class GuaranteeSentinel {
 
     public static void main(String[] args) {
 
+        //Todo 下单失败 还能继续提交 不扣减商品
         //执行任务请求间隔时间最小值
         int sleepMillisMin = 10000;
         //执行任务请求间隔时间最大值
         int sleepMillisMax = 20000;
 
         //单轮轮询时请求异常（服务器高峰期限流策略）尝试次数
-        int loopTryCount = 5;
+        int loopTryCount = 8;
 
         //60次以后长时间等待10分钟左右
         int longWaitCount = 0;
 
-        Map<String, Map<String, Object>> init = Api.init(UserConfig.deliveryType);
+        Api.init(UserConfig.deliveryType);
+        Map<String, Object> deliveryAddressDetail = Api.getDeliveryAddressDetail();
+        Map<String, Object> storeDetail = Api.getMiniUnLoginStoreList(Double.parseDouble((String) deliveryAddressDetail.get("latitude")), Double.parseDouble((String) deliveryAddressDetail.get("longitude")));
+
 
         List<GoodDto> saveGoodList = new ArrayList<>();
 //        List<GoodDto> addGoodList = new ArrayList<>();
@@ -52,9 +56,9 @@ public class GuaranteeSentinel {
                 for (int i = 0; i < loopTryCount && goodDtos == null; i++) {
                     sleep(RandomUtil.randomInt(500, 1000));
                     if (UserConfig.mode == 0) {
-                        goodDtos = Api.getCart(init.get("storeDetail"));
+                        goodDtos = Api.getCart(storeDetail);
                     } else if (UserConfig.mode == 1) {
-                        goodDtos = Api.getGoodsListByCategoryId(init.get("storeDetail"));
+                        goodDtos = Api.getGoodsListByCategoryId(storeDetail);
                     }
                 }
                 if (goodDtos == null) {
@@ -68,7 +72,7 @@ public class GuaranteeSentinel {
                 Map<String, Object> capacityData = null;
                 for (int i = 0; i < loopTryCount && capacityData == null; i++) {
                     sleep(RandomUtil.randomInt(500, 1000));
-                    capacityData = Api.getCapacityData(init.get("storeDetail"));
+                    capacityData = Api.getCapacityData(storeDetail);
                 }
                 if (capacityData == null) {
                     continue;
@@ -92,7 +96,7 @@ public class GuaranteeSentinel {
                 }
 
                 for (int i = 0; i < loopTryCount; i++) {
-                    if (Api.commitPay(goodDtos, capacityData, init.get("deliveryAddressDetail"), init.get("storeDetail"))) {
+                    if (Api.commitPay(goodDtos, capacityData, deliveryAddressDetail, storeDetail)) {
 //                        System.out.println("铃声持续1分钟，终止程序即可，如果还需要下单再继续运行程序");
                         Api.play();
 //                        break;

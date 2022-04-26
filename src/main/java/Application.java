@@ -31,12 +31,16 @@ public class Application {
         int sleepMillis = 200;
 
         //先初始化 获得必要的参数
-        Map<String, Map<String, Object>> init = Api.init(UserConfig.deliveryType);
+        Api.init(UserConfig.deliveryType);
+        Map<String, Object> deliveryAddressDetail = Api.getDeliveryAddressDetail();
+        Map<String, Object> storeDetail = Api.getMiniUnLoginStoreList(Double.parseDouble((String) deliveryAddressDetail.get("latitude")), Double.parseDouble((String) deliveryAddressDetail.get("longitude")));
+//        Api.context.put("deliveryAddressDetail", deliveryAddressDetail);
+//        Api.context.put("storeDetail", storeDetail);
 
         for (int i = 0; i < baseTheadSize; i++) {
             new Thread(() -> {
                 while (!Api.context.containsKey("end")) {
-                    List<GoodDto> goods = Api.getCart(init.get("storeDetail"));
+                    List<GoodDto> goods = Api.getCart(storeDetail);
                     if (goods != null) {
                         Api.context.put("goods", goods);
                     }
@@ -51,7 +55,7 @@ public class Application {
                     if (Api.context.get("goods") == null) {
                         continue;
                     }
-                    Map<String, Object> time = Api.getCapacityData(init.get("storeDetail"));
+                    Map<String, Object> time = Api.getCapacityData(storeDetail);
                     if (time != null) {
                         Api.context.put("time", time);
                     }
@@ -66,7 +70,7 @@ public class Application {
                         sleep(sleepMillis);
                         continue;
                     }
-                    if (Api.commitPay((List<GoodDto>) Api.context.get("goods"), (Map<String, Object>) Api.context.get("time"), init.get("deliveryAddressDetail"), init.get("storeDetail"))){
+                    if (Api.commitPay((List<GoodDto>) Api.context.get("goods"), (Map<String, Object>) Api.context.get("time"), deliveryAddressDetail, storeDetail)){
                         System.out.println("铃声持续1分钟，终止程序即可，如果还需要下单再继续运行程序");
                         Api.context.put("end", new HashMap<>());
                         Api.play();
