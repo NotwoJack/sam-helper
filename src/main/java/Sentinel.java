@@ -103,7 +103,7 @@ public class Sentinel {
                         Api.play();
                         break;
                     }
-                    sleep(RandomUtil.randomInt(100, 200));
+                    sleep(RandomUtil.randomInt(50, 100));
                 }
 
             } catch (Exception e) {

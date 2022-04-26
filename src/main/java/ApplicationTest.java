@@ -10,8 +10,11 @@ public class ApplicationTest {
 
     public static void main(String[] args) {
         //先初始化 获得必要的参数
-        Map<String, Map<String, Object>> init = Api.init(UserConfig.deliveryType);
-        List<GoodDto> goodDtos = Api.getGoodsListByCategoryId(init.get("storeDetail"));
+        Api.init(UserConfig.deliveryType);
+        Map<String, Object> deliveryAddressDetail = Api.getDeliveryAddressDetail();
+        Map<String, Object> storeDetail = Api.getMiniUnLoginStoreList(Double.parseDouble((String) deliveryAddressDetail.get("latitude")), Double.parseDouble((String) deliveryAddressDetail.get("longitude")));
+        List<GoodDto> goodDtos = Api.getCart(storeDetail);
+//        Api.barkNotice(UserConfig.barkId);
 //        Api.getCapacityData(init.get("storeDetail"));
 //        List<GoodDto> goodDtos = new ArrayList<>();
 //        GoodDto goodDto = new GoodDto();

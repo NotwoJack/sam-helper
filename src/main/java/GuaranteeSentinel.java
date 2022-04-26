@@ -19,9 +19,9 @@ public class GuaranteeSentinel {
     public static void main(String[] args) {
 
         //执行任务请求间隔时间最小值
-        int sleepMillisMin = 10000;
+        int sleepMillisMin = 1000;
         //执行任务请求间隔时间最大值
-        int sleepMillisMax = 20000;
+        int sleepMillisMax = 5000;
 
         //单轮轮询时请求异常（服务器高峰期限流策略）尝试次数
         int loopTryCount = 8;
@@ -70,6 +70,7 @@ public class GuaranteeSentinel {
                     Map<String, Object> capacityData = Api.getCapacityData(storeDetail);
                     if (capacityData == null) {
                         sleep(RandomUtil.randomInt(500, 1000));
+                        continue;
                     }
                     Api.context.put("capacityData", capacityData);
                 }
@@ -83,7 +84,7 @@ public class GuaranteeSentinel {
                     for (int i = 0; i < loopTryCount && addFlag == null; i++) {
                         addFlag = Api.addCartGoodsInfo(goodDtos);
                         if (addFlag == null){
-                            sleep(RandomUtil.randomInt(100, 500));
+                            sleep(RandomUtil.randomInt(500, 1000));
                         }
                     }
                 }
@@ -91,13 +92,13 @@ public class GuaranteeSentinel {
                     continue;
                 }
 
-                for (int i = 0; i < loopTryCount; i++) {
+                for (int i = 0; i < 50; i++) {
                     if (Api.commitPay(goodDtos, (Map<String, Object>) Api.context.get("capacityData"), deliveryAddressDetail, storeDetail)) {
                         Api.play();
                         saveGoodList.addAll(goodDtos);
                         break;
                     }
-                    sleep(RandomUtil.randomInt(100, 500));
+                    sleep(RandomUtil.randomInt(50, 100));
                 }
 
             } catch (Exception e) {
