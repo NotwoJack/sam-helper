@@ -34,8 +34,6 @@ public class Application {
         Api.init(UserConfig.deliveryType);
         Map<String, Object> deliveryAddressDetail = Api.getDeliveryAddressDetail();
         Map<String, Object> storeDetail = Api.getMiniUnLoginStoreList(Double.parseDouble((String) deliveryAddressDetail.get("latitude")), Double.parseDouble((String) deliveryAddressDetail.get("longitude")));
-//        Api.context.put("deliveryAddressDetail", deliveryAddressDetail);
-//        Api.context.put("storeDetail", storeDetail);
 
         for (int i = 0; i < baseTheadSize; i++) {
             new Thread(() -> {

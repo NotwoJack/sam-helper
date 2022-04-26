@@ -43,10 +43,6 @@ public class Api {
                 context.put("cartDeliveryType", "2");
                 context.put("storeType", 2);
             }
-//            Map<String, Object> deliveryAddressDetail = getDeliveryAddressDetail();
-//            Map<String, Object> storeDetail = getMiniUnLoginStoreList(Double.parseDouble((String) deliveryAddressDetail.get("latitude")), Double.parseDouble((String) deliveryAddressDetail.get("longitude")));
-//            context.put("deliveryAddressDetail", deliveryAddressDetail);
-//            context.put("storeDetail", storeDetail);
             return true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -545,14 +541,14 @@ public class Api {
             String body = httpRequest.execute().body();
             JSONObject object = JSONUtil.parseObj(body);
             if (!isSuccess(object, "添加商品至购物车")) {
-                return false;
+                return null;
             }
             print(true, "【成功】添加至购物车");
             return true;
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return false;
+        return null;
     }
 
 }

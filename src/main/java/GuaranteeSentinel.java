@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 哨兵捡漏模式 可长时间运行
+ * 保供套餐抢购模式 可长时间运行
  */
 public class GuaranteeSentinel {
 
@@ -18,7 +18,6 @@ public class GuaranteeSentinel {
 
     public static void main(String[] args) {
 
-        //Todo 下单失败 还能继续提交 不扣减商品
         //执行任务请求间隔时间最小值
         int sleepMillisMin = 10000;
         //执行任务请求间隔时间最大值
@@ -36,7 +35,6 @@ public class GuaranteeSentinel {
 
 
         List<GoodDto> saveGoodList = new ArrayList<>();
-//        List<GoodDto> addGoodList = new ArrayList<>();
 
         boolean first = true;
         while (!Api.context.containsKey("end")) {
@@ -54,52 +52,50 @@ public class GuaranteeSentinel {
 
                 List<GoodDto> goodDtos = null;
                 for (int i = 0; i < loopTryCount && goodDtos == null; i++) {
-                    sleep(RandomUtil.randomInt(500, 1000));
-                    if (UserConfig.mode == 0) {
-                        goodDtos = Api.getCart(storeDetail);
-                    } else if (UserConfig.mode == 1) {
-                        goodDtos = Api.getGoodsListByCategoryId(storeDetail);
+                    goodDtos = Api.getGoodsListByCategoryId(storeDetail);
+                    if (goodDtos == null) {
+                        sleep(RandomUtil.randomInt(500, 1000));
                     }
+
                 }
                 if (goodDtos == null) {
                     continue;
                 }
-                if (saveGoodList.containsAll(goodDtos)){
-                    System.out.println("套餐已经下单");
+                if (saveGoodList.containsAll(goodDtos)) {
+                    System.out.println("全部套餐都已经下单");
                     continue;
                 }
 
-                Map<String, Object> capacityData = null;
-                for (int i = 0; i < loopTryCount && capacityData == null; i++) {
-                    sleep(RandomUtil.randomInt(500, 1000));
-                    capacityData = Api.getCapacityData(storeDetail);
+                for (int i = 0; i < loopTryCount && Api.context.get("capacityData") == null; i++) {
+                    Map<String, Object> capacityData = Api.getCapacityData(storeDetail);
+                    if (capacityData == null) {
+                        sleep(RandomUtil.randomInt(500, 1000));
+                    }
+                    Api.context.put("capacityData", capacityData);
                 }
-                if (capacityData == null) {
+                if (Api.context.get("capacityData") == null) {
                     continue;
                 }
 
-                if (UserConfig.mode == 1) {
-                    Boolean addFlag = false;
-                    goodDtos.removeAll(saveGoodList);
-//                    addGoodList = goodDtos.stream().filter(goodDto -> !saveGoodList.contains(goodDto)).collect(Collectors.toList());
-                    if (!goodDtos.isEmpty()){
-                        for (int i = 0; i < loopTryCount && !addFlag ; i++) {
-                            addFlag = Api.addCartGoodsInfo(goodDtos);
+                Boolean addFlag = null;
+                goodDtos.removeAll(saveGoodList);
+                if (!goodDtos.isEmpty()) {
+                    for (int i = 0; i < loopTryCount && addFlag == null; i++) {
+                        addFlag = Api.addCartGoodsInfo(goodDtos);
+                        if (addFlag == null){
                             sleep(RandomUtil.randomInt(100, 500));
                         }
                     }
-                    if (!addFlag) {
-                        continue;
-                    } else {
-                        saveGoodList.addAll(goodDtos);
-                    }
+                }
+                if (addFlag == null) {
+                    continue;
                 }
 
                 for (int i = 0; i < loopTryCount; i++) {
-                    if (Api.commitPay(goodDtos, capacityData, deliveryAddressDetail, storeDetail)) {
-//                        System.out.println("铃声持续1分钟，终止程序即可，如果还需要下单再继续运行程序");
+                    if (Api.commitPay(goodDtos, (Map<String, Object>) Api.context.get("capacityData"), deliveryAddressDetail, storeDetail)) {
                         Api.play();
-//                        break;
+                        saveGoodList.addAll(goodDtos);
+                        break;
                     }
                     sleep(RandomUtil.randomInt(100, 500));
                 }

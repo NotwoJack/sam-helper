@@ -7,13 +7,10 @@ import java.util.Map;
  */
 public class UserConfig {
 
-    //0:普通抢购模式 1：保供套餐抢购模式
-    public static final Integer mode = 1 ;
-
     //1：极速达 2：全城配送
     public static final String deliveryType = "2";
-    //极速达下单目标金额
-    public static final Integer targetAmount = 0;
+    //下单目标金额
+    public static final Integer targetAmount = 200;
     //bark通知id
     public static final String barkId = "";
     //Server酱 用户 Token，可选参数，获取方式：https://sct.ftqq.com/sendkey
