@@ -100,7 +100,7 @@ public class Sentinel {
 
                 for (int i = 0; i < 50; i++) {
                     if (Api.commitPay(goodDtos, capacityData, (Map<String, Object>) Api.context.get("deliveryAddressDetail"), (Map<String, Object>) Api.context.get("storeDetail"))) {
-                        Api.play();
+                        Api.play("下单成功");
                         break;
                     }
                     sleep(RandomUtil.randomInt(50, 100));

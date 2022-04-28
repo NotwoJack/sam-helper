@@ -51,16 +51,16 @@ public class Api {
     }
 
     @SneakyThrows
-    public static void play() {
+    public static void play(String message) {
         new Thread(() -> {
             while (true){
                 // bark推送
                 if (!UserConfig.barkId.isEmpty()) {
-                    barkNotice(UserConfig.barkId);
+                    barkNotice(UserConfig.barkId,message);
                 }
                 // Server 酱推送
                 if (!UserConfig.ftqqSendKey.isEmpty()) {
-                    ftqqNotice(UserConfig.ftqqSendKey);
+                    ftqqNotice(UserConfig.ftqqSendKey,message);
                 }
                 //这里还可以使用企业微信或者钉钉的提供的webhook  自己写代码 很简单 就是按对应数据格式发一个请求到企业微信或者钉钉
                 try {
@@ -352,14 +352,14 @@ public class Api {
         return null;
     }
 
-    public static void barkNotice(String barkId) {
+    public static void barkNotice(String barkId,String message) {
         // sound=minuet 这里可在bark app选择自己喜爱的铃声
-        HttpRequest httpRequest = HttpUtil.createGet("https://api.day.app/" + barkId + "/抢购成功，请及时付款?sound=minuet");
+        HttpRequest httpRequest = HttpUtil.createGet("https://api.day.app/" + barkId + "/山姆下单助手：" + message + "?sound=minuet");
         String body = httpRequest.execute().body();
     }
 
-    public static void ftqqNotice(String sendKey) {
-        HttpRequest httpRequest = HttpUtil.createPost("https://sctapi.ftqq.com/" + sendKey + ".send?title=【山姆sam-helper】提醒&desp=抢购成功，请及时付款！");
+    public static void ftqqNotice(String sendKey,String message) {
+        HttpRequest httpRequest = HttpUtil.createPost("https://sctapi.ftqq.com/" + sendKey + ".send?title=" + message);
         Map<String, String> headers = new HashMap<>();
         headers.put("Content-Type", "application/x-www-form-urlencoded");
         httpRequest.addHeaders(headers);

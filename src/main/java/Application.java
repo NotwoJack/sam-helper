@@ -71,7 +71,7 @@ public class Application {
                     if (Api.commitPay((List<GoodDto>) Api.context.get("goods"), (Map<String, Object>) Api.context.get("time"), deliveryAddressDetail, storeDetail)){
                         System.out.println("铃声持续1分钟，终止程序即可，如果还需要下单再继续运行程序");
                         Api.context.put("end", new HashMap<>());
-                        Api.play();
+                        Api.play("下单成功");
                     }
                 }
             }).start();

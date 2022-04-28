@@ -64,6 +64,8 @@ public class GuaranteeSentinel {
                 if (saveGoodList.containsAll(goodDtos)) {
                     System.out.println("全部套餐都已经下单");
                     continue;
+                }else {
+                    Api.play("发现新上架的保供商品");
                 }
 
                 for (int i = 0; i < loopTryCount && Api.context.get("capacityData") == null; i++) {
@@ -92,9 +94,9 @@ public class GuaranteeSentinel {
                     continue;
                 }
 
-                for (int i = 0; i < 50; i++) {
+                for (int i = 0; i < 20; i++) {
                     if (Api.commitPay(goodDtos, (Map<String, Object>) Api.context.get("capacityData"), deliveryAddressDetail, storeDetail)) {
-                        Api.play();
+                        Api.play("下单成功");
                         saveGoodList.addAll(goodDtos);
                         break;
                     }
