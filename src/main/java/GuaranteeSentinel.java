@@ -52,7 +52,7 @@ public class GuaranteeSentinel {
 
                 List<GoodDto> goodDtos = null;
                 for (int i = 0; i < loopTryCount && goodDtos == null; i++) {
-                    goodDtos = Api.getGoodsListByCategoryId(storeDetail);
+                    goodDtos = Api.getPageData(storeDetail);
                     if (goodDtos == null) {
                         sleep(RandomUtil.randomInt(500, 1000));
                     }
