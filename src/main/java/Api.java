@@ -325,7 +325,7 @@ public class Api {
                 print(false, "【失败】购物车目前暂无可下单商品");
                 return null;
             } else {
-                double amount = object.getJSONObject("data").getDouble("selectedAmount") / 100;
+                double amount = 0;
                 JSONArray goods = object.getJSONObject("data").getJSONObject("miniProgramGoodsInfo").getJSONArray("normalGoodsList");
                 List<GoodDto> goodDtos = new ArrayList<>();
                 for (int i = 0; i < goods.size(); i++) {
@@ -339,6 +339,7 @@ public class Api {
                             goodDto.setQuantity(good.getStr("quantity"));
                         }
                         goodDto.setStoreId(good.getStr("storeId"));
+                        amount = amount + (Double.parseDouble(goodDto.getQuantity()) * Double.parseDouble(good.getStr("price"))) / 100;
                         goodDtos.add(goodDto);
                     }
                 }
