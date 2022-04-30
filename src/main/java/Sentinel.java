@@ -30,7 +30,7 @@ public class  Sentinel {
         //60次以后长时间等待10分钟左右
         int longWaitCount = 0;
 
-        Api.init(UserConfig.deliveryType);
+        Api.init("1");
 
         boolean first = true;
         while (!Api.context.containsKey("end")) {

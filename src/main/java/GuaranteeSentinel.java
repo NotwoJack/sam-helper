@@ -29,13 +29,12 @@ public class GuaranteeSentinel {
         //60次以后长时间等待10分钟左右
         int longWaitCount = 0;
 
-        Api.init(UserConfig.deliveryType);
+        Api.init("2");
         Map<String, Object> deliveryAddressDetail = Api.getDeliveryAddressDetail();
         Map<String, Object> storeDetail = Api.getMiniUnLoginStoreList(Double.parseDouble((String) deliveryAddressDetail.get("latitude")), Double.parseDouble((String) deliveryAddressDetail.get("longitude")));
-
+        Map<String, Object> capacityData = Api.getCapacityData(storeDetail);
 
         List<GoodDto> saveGoodList = new ArrayList<>();
-
         boolean first = true;
         while (!Api.context.containsKey("end")) {
             try {
@@ -54,29 +53,14 @@ public class GuaranteeSentinel {
                 for (int i = 0; i < loopTryCount && goodDtos == null; i++) {
                     goodDtos = Api.getPageData(storeDetail);
                     if (goodDtos == null) {
-                        sleep(RandomUtil.randomInt(500, 1000));
+                        sleep(RandomUtil.randomInt(1000, 1500));
                     }
-
                 }
                 if (goodDtos == null) {
                     continue;
                 }
                 if (saveGoodList.containsAll(goodDtos)) {
                     System.out.println("全部套餐都已经下单");
-                    continue;
-                }else {
-                    Api.play("发现新上架的保供商品");
-                }
-
-                for (int i = 0; i < loopTryCount && Api.context.get("capacityData") == null; i++) {
-                    Map<String, Object> capacityData = Api.getCapacityData(storeDetail);
-                    if (capacityData == null) {
-                        sleep(RandomUtil.randomInt(500, 1000));
-                        continue;
-                    }
-                    Api.context.put("capacityData", capacityData);
-                }
-                if (Api.context.get("capacityData") == null) {
                     continue;
                 }
 
@@ -86,7 +70,7 @@ public class GuaranteeSentinel {
                     for (int i = 0; i < loopTryCount && addFlag == null; i++) {
                         addFlag = Api.addCartGoodsInfo(goodDtos);
                         if (addFlag == null){
-                            sleep(RandomUtil.randomInt(500, 1000));
+                            sleep(RandomUtil.randomInt(1000, 1500));
                         }
                     }
                 }
@@ -94,14 +78,14 @@ public class GuaranteeSentinel {
                     continue;
                 }
 
-                for (int i = 0; i < 20; i++) {
-                    if (Api.commitPay(goodDtos, (Map<String, Object>) Api.context.get("capacityData"), deliveryAddressDetail, storeDetail)) {
-                        Api.play("下单成功");
-                        saveGoodList.addAll(goodDtos);
-                        break;
-                    }
-                    sleep(RandomUtil.randomInt(50, 100));
-                }
+//                for (int i = 0; i < 10; i++) {
+//                    if (Api.commitPay(goodDtos, capacityData, deliveryAddressDetail, storeDetail)) {
+//                        Api.play("下单成功");
+//                        saveGoodList.addAll(goodDtos);
+//                        break;
+//                    }
+//                    sleep(RandomUtil.randomInt(50, 100));
+//                }
 
             } catch (Exception e) {
                 e.printStackTrace();

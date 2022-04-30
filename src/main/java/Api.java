@@ -221,11 +221,11 @@ public class Api {
             JSONArray capcityResponseList = object.getJSONObject("data").getJSONArray("capcityResponseList");
             for (int i = 0; i < capcityResponseList.size(); i++) {
                 JSONObject capcityResponse = capcityResponseList.getJSONObject(i);
-                if (!capcityResponse.getBool("dateISFull")) {
+                if (!capcityResponse.getBool("dateISFull") || "2".equals(context.get("deliveryType"))) {
                     JSONArray times = capcityResponse.getJSONArray("list");
                     for (int j = 0; j < times.size(); j++) {
                         JSONObject time = times.getJSONObject(j);
-                        if (!time.getBool("timeISFull")) {
+                        if (!time.getBool("timeISFull") || "2".equals(context.get("deliveryType"))) {
                             map.put("startRealTime", time.get("startRealTime"));
                             map.put("endRealTime", time.get("endRealTime"));
                             print(true, "【成功】更新配送时间:" + time.getStr("startTime") + " -- " + time.getStr("endTime"));
@@ -528,11 +528,7 @@ public class Api {
             request.put("modulePagination", true);
             request.put("pageNum", 1);
             request.put("pageSize", 20);
-            Map<String, Object> store = new HashMap<>();
-            store.put("storeType", storeDetail.get("storeType"));
-            store.put("storeId", storeDetail.get("storeId"));
-            store.put("storeDeliveryAttr", storeDetail.get("storeDeliveryAttr"));
-            request.put("storeInfoList", Arrays.asList(store));
+            request.put("storeInfoList", Arrays.asList(storeDetail));
 
             httpRequest.body(JSONUtil.toJsonStr(request));
             String body = httpRequest.execute().body();
@@ -541,7 +537,8 @@ public class Api {
                 return null;
             }
             JSONObject object = JSONUtil.parseObj(body);
-            if (!isSuccess(object, "获取保供套餐列表")) {
+            if (!isSuccess
+                    (object, "获取保供套餐列表")) {
                 return null;
             }
             JSONArray pageModuleVOList = object.getJSONObject("data").getJSONArray("pageModuleVOList");
@@ -553,27 +550,33 @@ public class Api {
                     JSONArray goods = renderContent.getJSONArray("goodsList");
                     for (int h = 0; h < goods.size(); h++) {
                         JSONObject good = goods.getJSONObject(h);
-                        if (good.getBool("isAvailable") != null && good.getBool("isAvailable")
-//                                && good.getBool("isPutOnSale") != null && good.getBool("isPutOnSale")
+                        if (good.getBool("isAvailable") != null && good.getBool("isAvailable") && good.getStr("title").contains("套餐")
                         ) {
                             Integer stockQuantity = good.getJSONObject("stockInfo").getInt("stockQuantity");
+                            JSONArray priceInfoList = good.getJSONArray("priceInfo");
+                            Iterator<Object> iterator = priceInfoList.iterator();
+                            double price = 0;
+                            while (iterator.hasNext()) {
+                                JSONObject priceInfo = (JSONObject) iterator.next();
+                                if (priceInfo.getInt("priceType") == 4) {
+                                    price = priceInfo.getDouble("price") / 100;
+                                }
+                            }
                             if (stockQuantity > 0) {
                                 GoodDto goodDto = new GoodDto();
                                 goodDto.setSpuId(good.getStr("spuId"));
-                                goodDto.setQuantity("3");
+                                Integer quantity = 3;
+                                if (stockQuantity > quantity){
+                                    goodDto.setQuantity(quantity.toString());
+                                } else {
+                                    goodDto.setQuantity("1");
+                                }
                                 goodDto.setStoreId(good.getStr("storeId"));
                                 goodDtos.add(goodDto);
-                                JSONArray priceInfoList = good.getJSONArray("priceInfo");
-                                Iterator<Object> iterator = priceInfoList.iterator();
-                                double price = 0;
-                                while (iterator.hasNext()) {
-                                    JSONObject priceInfo = (JSONObject) iterator.next();
-                                    if (priceInfo.getInt("priceType") == 4) {
-                                        price = priceInfo.getDouble("price") / 100;
-                                    }
-                                }
-                                amount = amount + price;
-                                System.out.println(good.getStr("title") + " 价格：" + price + " 剩余库存：" + stockQuantity + "\n" + good.getStr("subTitle"));
+                                amount = amount + price * Double.parseDouble(goodDto.getQuantity());
+                                System.out.println(good.getStr("title") + " 价格：" + price + "元 剩余库存：" + stockQuantity + "\n" + good.getStr("subTitle"));
+                            } else {
+                                System.out.println(good.getStr("title") + " 价格：" + price + "元 剩余库存：" + stockQuantity);
                             }
                         }
                     }

@@ -10,9 +10,9 @@ public class UserConfig {
     //1：极速达 2：全城配送
     public static final String deliveryType = "2";
     //下单目标金额
-    public static final Integer targetAmount = 200;
+    public static final Integer targetAmount = 500;
     //bark通知id
-    public static final String barkId = "";
+    public static final String barkId = "wrkU4Qz9VHZuf7Pv7hco2S";
     //Server酱 用户 Token，可选参数，获取方式：https://sct.ftqq.com/sendkey
     public static final String ftqqSendKey = "";
     /**
@@ -29,14 +29,14 @@ public class UserConfig {
         headers.put("Accept-Language", "zh-CN,zh;q=0.9");
         headers.put("User-Agent", "SamClub/5.0.45 (iPhone; iOS 15.4; Scale/3.00)");
         headers.put("device-type", "mini_program");
-        headers.put("auth-token", "需要填写");
+        headers.put("auth-token", "740d926b981716f4a42ea734ed0c250a5c54c502a29294e5592d635eb97214d8");
         return headers;
     }
 
     public static Map<String,Object> getIdInfo() {
         Map<String,Object> idInfo = new HashMap<>();
-        idInfo.put("uid", "181817666575");
-        idInfo.put("appId", "wxb344a8666eaaf849");
+        idInfo.put("uid", "181817999575");
+        idInfo.put("appId", "wxb344a8999eaaf849");
         idInfo.put("saasId", "1818");
         return idInfo;
     }
