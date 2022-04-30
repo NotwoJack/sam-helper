@@ -52,8 +52,6 @@ public class  Sentinel {
                         sleep(RandomUtil.randomInt(500, 1000));
                         continue;
                     }
-                    Api.context.put("latitude", deliveryAddressDetail.get("latitude"));
-                    Api.context.put("longitude", deliveryAddressDetail.get("longitude"));
                     Api.context.put("deliveryAddressDetail", deliveryAddressDetail);
                 }
                 if (Api.context.get("deliveryAddressDetail") == null) {

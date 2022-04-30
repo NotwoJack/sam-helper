@@ -130,8 +130,8 @@ public class Api {
             Map<String, Object> map = new HashMap<>();
             JSONObject data = object.getJSONObject("data");
             map.put("addressId", data.getStr("addressId"));
-            map.put("latitude", data.getStr("latitude"));
-            map.put("longitude", data.getStr("longitude"));
+            context.put("latitude", data.getStr("latitude"));
+            context.put("longitude", data.getStr("longitude"));
             print(true, "【成功】获取收货地址"
                     + " 收货地址：" + data.getStr("cityName") + data.getStr("districtName") + data.getStr("detailAddress")
                     + " 收货人：" + data.getStr("name") + " 手机号：" + data.getStr("phone"));
@@ -525,9 +525,9 @@ public class Api {
             Map<String, Object> request = UserConfig.getIdInfo();
 
             request.put("pageContentId", "1187641882302384150");
-            request.put("modulePagination", true);
-            request.put("pageNum", 1);
-            request.put("pageSize", 20);
+            request.put("authorize", true);
+            request.put("latitude", context.get("latitude"));
+            request.put("longitude", context.get("longitude"));
             request.put("storeInfoList", Arrays.asList(storeDetail));
 
             httpRequest.body(JSONUtil.toJsonStr(request));

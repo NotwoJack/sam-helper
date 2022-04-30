@@ -1,8 +1,6 @@
 import cn.hutool.core.util.RandomUtil;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 保供套餐抢购模式 可长时间运行
@@ -31,7 +29,7 @@ public class GuaranteeSentinel {
 
         Api.init("2");
         Map<String, Object> deliveryAddressDetail = Api.getDeliveryAddressDetail();
-        Map<String, Object> storeDetail = Api.getMiniUnLoginStoreList(Double.parseDouble((String) deliveryAddressDetail.get("latitude")), Double.parseDouble((String) deliveryAddressDetail.get("longitude")));
+        Map<String, Object> storeDetail = Api.getMiniUnLoginStoreList(Double.parseDouble((String) Api.context.get("latitude")), Double.parseDouble((String) Api.context.get("longitude")));
         Map<String, Object> capacityData = Api.getCapacityData(storeDetail);
 
         List<GoodDto> saveGoodList = new ArrayList<>();
@@ -78,14 +76,16 @@ public class GuaranteeSentinel {
                     continue;
                 }
 
-//                for (int i = 0; i < 10; i++) {
-//                    if (Api.commitPay(goodDtos, capacityData, deliveryAddressDetail, storeDetail)) {
-//                        Api.play("下单成功");
-//                        saveGoodList.addAll(goodDtos);
-//                        break;
-//                    }
-//                    sleep(RandomUtil.randomInt(50, 100));
-//                }
+                goodDtos.forEach(goodDto -> {
+                    for (int i = 0; i < 15; i++) {
+                        if (Api.commitPay(Arrays.asList(goodDto), capacityData, deliveryAddressDetail, storeDetail)) {
+                            Api.play("下单成功");
+                            saveGoodList.add(goodDto);
+                            break;
+                        }
+                        sleep(RandomUtil.randomInt(50, 100));
+                    }
+                });
 
             } catch (Exception e) {
                 e.printStackTrace();

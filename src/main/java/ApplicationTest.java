@@ -12,7 +12,7 @@ public class ApplicationTest {
         //先初始化 获得必要的参数
         Api.init(UserConfig.deliveryType);
         Map<String, Object> deliveryAddressDetail = Api.getDeliveryAddressDetail();
-        Map<String, Object> storeDetail = Api.getMiniUnLoginStoreList(Double.parseDouble((String) deliveryAddressDetail.get("latitude")), Double.parseDouble((String) deliveryAddressDetail.get("longitude")));
+        Map<String, Object> storeDetail = Api.getMiniUnLoginStoreList(Double.parseDouble((String) Api.context.get("latitude")), Double.parseDouble((String) Api.context.get("longitude")));
         List<GoodDto> goodDtos = Api.getPageData(storeDetail);
 //        Api.barkNotice(UserConfig.barkId);
 //        Api.getCapacityData(init.get("storeDetail"));
