@@ -30,7 +30,7 @@ public class GuaranteeSentinel {
         Api.init("2");
         Map<String, Object> deliveryAddressDetail = Api.getDeliveryAddressDetail();
         Map<String, Object> storeDetail = Api.getMiniUnLoginStoreList(Double.parseDouble((String) Api.context.get("latitude")), Double.parseDouble((String) Api.context.get("longitude")));
-        Map<String, Object> capacityData = Api.getCapacityData(storeDetail);
+        Map<String, Object> capacityData = Api. getCapacityData(storeDetail);
 
         List<GoodDto> saveGoodList = new ArrayList<>();
         boolean first = true;
