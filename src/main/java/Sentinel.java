@@ -39,8 +39,8 @@ public class  Sentinel {
                     first = false;
                 } else {
                     if (longWaitCount++ > 60) {
-                        longWaitCount = 0;
-                        sleep(RandomUtil.randomInt(50000, 70000));
+//                        longWaitCount = 0;
+//                        sleep(RandomUtil.randomInt(50000, 70000));
                     } else {
                         sleep(RandomUtil.randomInt(sleepMillisMin, sleepMillisMax));
                     }
@@ -96,7 +96,7 @@ public class  Sentinel {
                     continue;
                 }
 
-                for (int i = 0; i < 50; i++) {
+                for (int i = 0; i < 20; i++) {
                     if (Api.commitPay(goodDtos, capacityData, (Map<String, Object>) Api.context.get("deliveryAddressDetail"), (Map<String, Object>) Api.context.get("storeDetail"))) {
                         Api.play("下单成功");
                         break;
