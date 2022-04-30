@@ -450,6 +450,7 @@ public class Api {
      * @param storeDetail 商店信息
      * @return 购物车商品列表
      */
+    @Deprecated
     public static List<GoodDto> getGoodsListByCategoryId(Map<String, Object> storeDetail) {
         try {
             HttpRequest httpRequest = HttpUtil.createPost("https://api-sams.walmartmobile.cn/api/v1/sams/goods-portal/grouping/list");
@@ -544,12 +545,12 @@ public class Api {
                 return null;
             }
             JSONArray pageModuleVOList = object.getJSONObject("data").getJSONArray("pageModuleVOList");
+            List<GoodDto> goodDtos = new ArrayList<>();
+            double amount = 0;
             for (int i = 0; i < pageModuleVOList.size(); i++) {
                 JSONObject renderContent = pageModuleVOList.getJSONObject(i).getJSONObject("renderContent");
                 if (renderContent.getJSONArray("goodsList") != null && !renderContent.getJSONArray("goodsList").isEmpty()) {
                     JSONArray goods = renderContent.getJSONArray("goodsList");
-                    List<GoodDto> goodDtos = new ArrayList<>();
-                    double amount = 0;
                     for (int h = 0; h < goods.size(); h++) {
                         JSONObject good = goods.getJSONObject(h);
                         if (good.getBool("isAvailable") != null && good.getBool("isAvailable")
@@ -576,15 +577,15 @@ public class Api {
                             }
                         }
                     }
-                    if (goodDtos.isEmpty()) {
-                        print(false, "【失败】暂未获取到有货的保供套餐");
-                        return null;
-                    }
-                    print(true, "【成功】获取到保供套餐");
-                    context.put("amount", amount);
-                    return goodDtos;
                 }
             }
+            if (goodDtos.isEmpty()) {
+                print(false, "【失败】暂未获取到有货的保供套餐");
+                return null;
+            }
+            print(true, "【成功】获取到保供套餐");
+            context.put("amount", amount);
+            return goodDtos;
         } catch (Exception e) {
             e.printStackTrace();
         }

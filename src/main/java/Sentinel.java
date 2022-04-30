@@ -8,7 +8,7 @@ import java.util.Map;
  * 哨兵捡漏模式 可长时间运行。
  * 用于极速达捡漏，可以在UserConfig中设置下单目标金额
  */
-public class Sentinel {
+public class  Sentinel {
 
     private static void sleep(int millis) {
         try {
