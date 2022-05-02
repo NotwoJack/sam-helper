@@ -424,7 +424,7 @@ public class Api {
 
             CouponDto coupon = null;
             Double amount = (Double) context.get("amount");
-            if (UserConfig.coupon && couponDtoList != null){
+            if (UserConfig.coupon && couponDtoList != null) {
                 Double finalAmount = amount;
                 coupon = couponDtoList.stream()
                         .filter(couponDto -> couponDto.getCondition() < finalAmount)
@@ -588,15 +588,7 @@ public class Api {
                             if (stockQuantity > 0) {
                                 GoodDto goodDto = new GoodDto();
                                 goodDto.setSpuId(good.getStr("spuId"));
-                                Integer quantity = 1;
-                                if (stockQuantity > quantity) {
-                                    goodDto.setQuantity(quantity.toString());
-                                } else {
-                                    goodDto.setQuantity("1");
-                                }
-                                if (good.getStr("title").contains("瑞士卷")) {
-                                    goodDto.setQuantity("1");
-                                }
+                                goodDto.setQuantity("1");
                                 goodDto.setStoreId(good.getStr("storeId"));
                                 goodDtos.add(goodDto);
                                 amount = amount + price * Double.parseDouble(goodDto.getQuantity());
@@ -682,8 +674,8 @@ public class Api {
             for (int i = 0; i < couponList.size(); i++) {
                 if (couponList.getJSONObject(i).getInt("couponType") == 1) {
                     CouponDto couponDto = new CouponDto();
-                    couponDto.setCondition(Integer.valueOf(couponList.getJSONObject(i).getJSONObject("promotion").getJSONObject("condition").getStr("value"))/100);
-                    couponDto.setDiscount(Integer.valueOf(couponList.getJSONObject(i).getJSONObject("promotion").getJSONObject("discount").getStr("value"))/100);
+                    couponDto.setCondition(Integer.valueOf(couponList.getJSONObject(i).getJSONObject("promotion").getJSONObject("condition").getStr("value")) / 100);
+                    couponDto.setDiscount(Integer.valueOf(couponList.getJSONObject(i).getJSONObject("promotion").getJSONObject("discount").getStr("value")) / 100);
                     couponDto.setRuleId(couponList.getJSONObject(i).getStr("ruleId"));
                     couponDtoList.add(couponDto);
                 }
@@ -692,7 +684,7 @@ public class Api {
                 return null;
             }
 //            print(true, "【成功】获取优惠券");
-            context.put("couponDtoList",couponDtoList);
+            context.put("couponDtoList", couponDtoList);
             return couponDtoList;
         } catch (Exception e) {
             e.printStackTrace();

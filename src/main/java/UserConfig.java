@@ -12,7 +12,7 @@ public class UserConfig {
     //下单目标金额
     public static final Integer targetAmount = 500;
     //是否使用优惠券
-    public static final Boolean coupon = true;
+    public static final Boolean coupon = false;
     //bark通知id
     public static final String barkId = "wrkU4Qz9VHZuf7Pv7hco2S";
     //Server酱 用户 Token，可选参数，获取方式：https://sct.ftqq.com/sendkey
@@ -38,8 +38,8 @@ public class UserConfig {
 
     public static Map<String,Object> getIdInfo() {
         Map<String,Object> idInfo = new HashMap<>();
-        idInfo.put("uid", "181817999575");
-        idInfo.put("appId", "wxb344a8999eaaf849");
+        idInfo.put("uid", "181817123575");
+        idInfo.put("appId", "wxb344a8123eaaf849");
         idInfo.put("saasId", "1818");
         return idInfo;
     }
