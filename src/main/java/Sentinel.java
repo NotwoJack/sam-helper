@@ -28,6 +28,7 @@ public class Sentinel {
         int loopTryCount = 8;
 
         Api.init("2");
+        List<CouponDto> couponList = Api.getCouponList();
 
         while (!Api.context.containsKey("end")) {
             try {
@@ -84,7 +85,7 @@ public class Sentinel {
                 }
 
                 for (int i = 0; i < 20; i++) {
-                    if (Api.commitPay(goodDtos, capacityData, (Map<String, Object>) Api.context.get("deliveryAddressDetail"), (Map<String, Object>) Api.context.get("storeDetail"))) {
+                    if (Api.commitPay(goodDtos, capacityData, (Map<String, Object>) Api.context.get("deliveryAddressDetail"), (Map<String, Object>) Api.context.get("storeDetail"), (List<CouponDto>) Api.context.get("couponDtoList"))) {
                         Api.play("下单成功");
                         break;
                     }

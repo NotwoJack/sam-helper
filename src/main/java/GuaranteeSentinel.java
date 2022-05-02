@@ -28,6 +28,7 @@ public class GuaranteeSentinel {
         Map<String, Object> deliveryAddressDetail = Api.getDeliveryAddressDetail();
         Map<String, Object> storeDetail = Api.getMiniUnLoginStoreList(Double.parseDouble((String) Api.context.get("latitude")), Double.parseDouble((String) Api.context.get("longitude")));
         Map<String, Object> capacityData = Api. getCapacityData(storeDetail);
+        List<CouponDto> couponList = Api.getCouponList();
 
         List<GoodDto> saveGoodList = new ArrayList<>();
         while (!Api.context.containsKey("end")) {
@@ -65,7 +66,7 @@ public class GuaranteeSentinel {
 
                 goodDtos.forEach(goodDto -> {
                     for (int i = 0; i < 15; i++) {
-                        if (Api.commitPay(Arrays.asList(goodDto), capacityData, deliveryAddressDetail, storeDetail)) {
+                        if (Api.commitPay(Arrays.asList(goodDto), capacityData, deliveryAddressDetail, storeDetail,couponList)) {
                             Api.play("下单成功");
                             saveGoodList.add(goodDto);
                             break;

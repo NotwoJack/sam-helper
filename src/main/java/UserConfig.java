@@ -8,9 +8,11 @@ import java.util.Map;
 public class UserConfig {
 
     //1：极速达 2：全城配送
-    public static final String deliveryType = "2";
+    public static final String deliveryType = "1";
     //下单目标金额
     public static final Integer targetAmount = 500;
+    //是否使用优惠券
+    public static final Boolean coupon = true;
     //bark通知id
     public static final String barkId = "wrkU4Qz9VHZuf7Pv7hco2S";
     //Server酱 用户 Token，可选参数，获取方式：https://sct.ftqq.com/sendkey

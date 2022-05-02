@@ -19,6 +19,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * 接口封装
@@ -376,7 +377,7 @@ public class Api {
      * @param storeDetail           商店信息
      * @return 下单成功与否
      */
-    public static Boolean commitPay(List<GoodDto> goods, Map<String, Object> capacityData, Map<String, Object> deliveryAddressDetail, Map<String, Object> storeDetail) {
+    public static Boolean commitPay(List<GoodDto> goods, Map<String, Object> capacityData, Map<String, Object> deliveryAddressDetail, Map<String, Object> storeDetail, List<CouponDto> couponDtoList) {
         try {
             HttpRequest httpRequest = HttpUtil.createPost("https://api-sams.walmartmobile.cn/api/v1/sams/trade/settlement/commitPay");
 
@@ -390,7 +391,6 @@ public class Api {
             request.put("sceneCode", 1074);
             request.put("isSelectShoppingNotes", true);
             request.put("cartDeliveryType", context.get("cartDeliveryType"));
-            request.put("couponList", new ArrayList<>());
             request.put("floorId", 1);
             request.put("amount", 100);
             request.put("payType", 0);
@@ -421,6 +421,25 @@ public class Api {
             storeInfo.put("storeType", storeDetail.get("storeType"));
             storeInfo.put("areaBlockId", storeDetail.get("areaBlockId"));
             request.put("storeInfo", storeInfo);
+
+            CouponDto coupon = null;
+            Double amount = (Double) context.get("amount");
+            if (UserConfig.coupon && couponDtoList != null){
+                Double finalAmount = amount;
+                coupon = couponDtoList.stream()
+                        .filter(couponDto -> couponDto.getCondition() < finalAmount)
+                        .sorted(Comparator.comparing(CouponDto::getDiscount).reversed())
+                        .collect(Collectors.toList())
+                        .get(0);
+                Map<String, String> couponMap = new HashMap<>();
+                List<Map> couponList = new ArrayList<>();
+                couponMap.put("promotionId", coupon.getRuleId());
+                couponMap.put("storeId", (String) storeDetail.get("storeId"));
+                couponList.add(couponMap);
+                request.put("couponList", couponList);
+                amount = amount - coupon.getDiscount();
+            }
+
             httpRequest.body(JSONUtil.toJsonStr(request));
             String body = httpRequest.execute().body();
             if (body == null || body.isEmpty()) {
@@ -432,7 +451,11 @@ public class Api {
                 return false;
             }
             context.put("success", new HashMap<>());
-            print(true, "【恭喜你】已成功下单 当前下单总金额：" + context.get("amount") + "元");
+            print(true, "【恭喜你】已成功下单 当前下单总金额：" + amount + "元");
+            if (UserConfig.coupon && couponDtoList != null) {
+                couponDtoList.remove(coupon);
+                context.put("couponDtoList", couponDtoList);
+            }
             return true;
         } catch (JSONException e) {
             print(false, "【失败】请求过快被风控，请调整参数");
@@ -550,7 +573,7 @@ public class Api {
                     JSONArray goods = renderContent.getJSONArray("goodsList");
                     for (int h = 0; h < goods.size(); h++) {
                         JSONObject good = goods.getJSONObject(h);
-                        if (good.getBool("isAvailable") != null && good.getBool("isAvailable") && (good.getStr("title").contains("食")||good.getStr("title").contains("瑞士卷"))
+                        if (good.getBool("isAvailable") != null && good.getBool("isAvailable") && (good.getStr("title").contains("套餐") || good.getStr("title").contains("瑞士卷"))
                         ) {
                             Integer stockQuantity = good.getJSONObject("stockInfo").getInt("stockQuantity");
                             JSONArray priceInfoList = good.getJSONArray("priceInfo");
@@ -565,15 +588,15 @@ public class Api {
                             if (stockQuantity > 0) {
                                 GoodDto goodDto = new GoodDto();
                                 goodDto.setSpuId(good.getStr("spuId"));
-                                Integer quantity = 3;
-                                if (stockQuantity > quantity){
+                                Integer quantity = 1;
+                                if (stockQuantity > quantity) {
                                     goodDto.setQuantity(quantity.toString());
                                 } else {
                                     goodDto.setQuantity("1");
                                 }
-                            if (good.getStr("title").contains("瑞士卷")){
-                                goodDto.setQuantity("10");
-                            }
+                                if (good.getStr("title").contains("瑞士卷")) {
+                                    goodDto.setQuantity("1");
+                                }
                                 goodDto.setStoreId(good.getStr("storeId"));
                                 goodDtos.add(goodDto);
                                 amount = amount + price * Double.parseDouble(goodDto.getQuantity());
@@ -639,4 +662,41 @@ public class Api {
         return null;
     }
 
+    public static List<CouponDto> getCouponList() {
+        try {
+            HttpRequest httpRequest = HttpUtil.createPost("https://api-sams.walmartmobile.cn/api/v1/sams/coupon/coupon/query");
+            httpRequest.addHeaders(UserConfig.getHeaders());
+            Map<String, Object> request = UserConfig.getIdInfo();
+            request.put("pageSize", 20);
+            request.put("pageNum", 1);
+            request.put("status", "1");
+
+            httpRequest.body(JSONUtil.toJsonStr(request));
+            String body = httpRequest.execute().body();
+            JSONObject object = JSONUtil.parseObj(body);
+            if (!isSuccess(object, "获取优惠券")) {
+                return null;
+            }
+            JSONArray couponList = object.getJSONObject("data").getJSONArray("couponInfoList");
+            List<CouponDto> couponDtoList = new ArrayList<>();
+            for (int i = 0; i < couponList.size(); i++) {
+                if (couponList.getJSONObject(i).getInt("couponType") == 1) {
+                    CouponDto couponDto = new CouponDto();
+                    couponDto.setCondition(Integer.valueOf(couponList.getJSONObject(i).getJSONObject("promotion").getJSONObject("condition").getStr("value"))/100);
+                    couponDto.setDiscount(Integer.valueOf(couponList.getJSONObject(i).getJSONObject("promotion").getJSONObject("discount").getStr("value"))/100);
+                    couponDto.setRuleId(couponList.getJSONObject(i).getStr("ruleId"));
+                    couponDtoList.add(couponDto);
+                }
+            }
+            if (couponDtoList.isEmpty()) {
+                return null;
+            }
+//            print(true, "【成功】获取优惠券");
+            context.put("couponDtoList",couponDtoList);
+            return couponDtoList;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }
