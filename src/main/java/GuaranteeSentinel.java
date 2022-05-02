@@ -24,28 +24,15 @@ public class GuaranteeSentinel {
         //单轮轮询时请求异常（服务器高峰期限流策略）尝试次数
         int loopTryCount = 8;
 
-        //60次以后长时间等待10分钟左右
-        int longWaitCount = 0;
-
         Api.init("2");
         Map<String, Object> deliveryAddressDetail = Api.getDeliveryAddressDetail();
         Map<String, Object> storeDetail = Api.getMiniUnLoginStoreList(Double.parseDouble((String) Api.context.get("latitude")), Double.parseDouble((String) Api.context.get("longitude")));
         Map<String, Object> capacityData = Api. getCapacityData(storeDetail);
 
         List<GoodDto> saveGoodList = new ArrayList<>();
-        boolean first = true;
         while (!Api.context.containsKey("end")) {
             try {
-                if (first) {
-                    first = false;
-                } else {
-                    if (longWaitCount++ > 60) {
-//                        longWaitCount = 0;
-//                        sleep(RandomUtil.randomInt(50000, 70000));
-                    } else {
-                        sleep(RandomUtil.randomInt(sleepMillisMin, sleepMillisMax));
-                    }
-                }
+                sleep(RandomUtil.randomInt(sleepMillisMin, sleepMillisMax));
 
                 List<GoodDto> goodDtos = null;
                 for (int i = 0; i < loopTryCount && goodDtos == null; i++) {

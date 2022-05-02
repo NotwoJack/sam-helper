@@ -8,7 +8,7 @@ import java.util.Map;
  * 哨兵捡漏模式 可长时间运行。
  * 用于极速达捡漏，可以在UserConfig中设置下单目标金额
  */
-public class  Sentinel {
+public class Sentinel {
 
     private static void sleep(int millis) {
         try {
@@ -27,24 +27,11 @@ public class  Sentinel {
         //单轮轮询时请求异常（服务器高峰期限流策略）尝试次数
         int loopTryCount = 8;
 
-        //60次以后长时间等待10分钟左右
-        int longWaitCount = 0;
+        Api.init("2");
 
-        Api.init("1");
-
-        boolean first = true;
         while (!Api.context.containsKey("end")) {
             try {
-                if (first) {
-                    first = false;
-                } else {
-                    if (longWaitCount++ > 60) {
-//                        longWaitCount = 0;
-//                        sleep(RandomUtil.randomInt(50000, 70000));
-                    } else {
-                        sleep(RandomUtil.randomInt(sleepMillisMin, sleepMillisMax));
-                    }
-                }
+                sleep(RandomUtil.randomInt(sleepMillisMin, sleepMillisMax));
 
                 for (int i = 0; i < loopTryCount && (Api.context.get("deliveryAddressDetail") == null); i++) {
                     Map<String, Object> deliveryAddressDetail = Api.getDeliveryAddressDetail();
