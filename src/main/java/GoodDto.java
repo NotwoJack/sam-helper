@@ -17,6 +17,8 @@ public class GoodDto {
 
     Boolean isSelected = true;
 
+    Double weight;
+
     @Override
     public boolean equals(Object o){
         return o instanceof GoodDto && Objects.equals(this.spuId, ((GoodDto) o).spuId);

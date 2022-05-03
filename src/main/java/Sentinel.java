@@ -27,7 +27,7 @@ public class Sentinel {
         //单轮轮询时请求异常（服务器高峰期限流策略）尝试次数
         int loopTryCount = 8;
 
-        Api.init("2");
+        Api.init("1");
         List<CouponDto> couponList = Api.getCouponList();
 
         while (!Api.context.containsKey("end")) {

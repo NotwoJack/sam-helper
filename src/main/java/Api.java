@@ -339,7 +339,13 @@ public class Api {
                         } else {
                             goodDto.setQuantity(good.getStr("quantity"));
                         }
+                        if (!good.getJSONObject("purchaseLimitVO").isEmpty()){
+                            if (good.getJSONObject("purchaseLimitVO").getInt("limitNum") < Integer.valueOf(goodDto.getQuantity())){
+                                goodDto.setQuantity(good.getJSONObject("purchaseLimitVO").getStr("limitNum"));
+                            }
+                        }
                         goodDto.setStoreId(good.getStr("storeId"));
+                        goodDto.setWeight(good.getDouble("weight"));
                         amount = amount + (Double.parseDouble(goodDto.getQuantity()) * Double.parseDouble(good.getStr("price"))) / 100;
                         goodDtos.add(goodDto);
                     }
