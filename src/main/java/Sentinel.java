@@ -84,7 +84,7 @@ public class Sentinel {
                     continue;
                 }
 
-                for (int i = 0; i < 20; i++) {
+                for (int i = 0; i < 15; i++) {
                     if (Api.commitPay(goodDtos, capacityData, (Map<String, Object>) Api.context.get("deliveryAddressDetail"), (Map<String, Object>) Api.context.get("storeDetail"), (List<CouponDto>) Api.context.get("couponDtoList"))) {
                         Api.play("下单成功");
                         Api.addCartGoodsInfo(goodDtos);

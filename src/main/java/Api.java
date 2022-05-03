@@ -220,6 +220,18 @@ public class Api {
             }
             Map<String, Object> map = new HashMap<>();
             JSONArray capcityResponseList = object.getJSONObject("data").getJSONArray("capcityResponseList");
+            //对于只有一个时间段段配送直接预判处理
+            if (capcityResponseList.size() == 1){
+                JSONArray list = capcityResponseList.getJSONObject(0).getJSONArray("list");
+                if (list.size() == 1){
+                    JSONObject time = list.getJSONObject(0);
+                    map.put("startRealTime", time.get("startRealTime"));
+                    map.put("endRealTime", time.get("endRealTime"));
+                    print(true, "【成功】单一配送时间，直接预处理:" + time.getStr("startTime") + " -- " + time.getStr("endTime"));
+                    return map;
+                }
+            }
+
             for (int i = 0; i < capcityResponseList.size(); i++) {
                 JSONObject capcityResponse = capcityResponseList.getJSONObject(i);
                 if (!capcityResponse.getBool("dateISFull") || "2".equals(context.get("deliveryType"))) {
