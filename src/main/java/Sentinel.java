@@ -1,5 +1,6 @@
 import cn.hutool.core.util.RandomUtil;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,12 +21,12 @@ public class Sentinel {
     public static void main(String[] args) {
 
         //执行任务请求间隔时间最小值
-        int sleepMillisMin = 5000;
+        int sleepMillisMin = 1000;
         //执行任务请求间隔时间最大值
-        int sleepMillisMax = 10000;
+        int sleepMillisMax = 5000;
 
         //单轮轮询时请求异常（服务器高峰期限流策略）尝试次数
-        int loopTryCount = 8;
+        int loopTryCount = 10;
 
         Api.init("1");
         List<CouponDto> couponList = Api.getCouponList();
@@ -36,10 +37,7 @@ public class Sentinel {
 
                 for (int i = 0; i < loopTryCount && (Api.context.get("deliveryAddressDetail") == null); i++) {
                     Map<String, Object> deliveryAddressDetail = Api.getDeliveryAddressDetail();
-                    if (deliveryAddressDetail == null) {
-                        sleep(RandomUtil.randomInt(500, 1000));
-                        continue;
-                    }
+                    sleep(RandomUtil.randomInt(500, 1000));
                     Api.context.put("deliveryAddressDetail", deliveryAddressDetail);
                 }
                 if (Api.context.get("deliveryAddressDetail") == null) {
@@ -48,10 +46,7 @@ public class Sentinel {
 
                 for (int i = 0; i < loopTryCount && (Api.context.get("storeDetail") == null); i++) {
                     Map<String, Object> storeDetail = Api.getMiniUnLoginStoreList(Double.parseDouble((String) Api.context.get("latitude")), Double.parseDouble((String) Api.context.get("longitude")));
-                    if (storeDetail == null) {
-                        sleep(RandomUtil.randomInt(500, 1000));
-                        continue;
-                    }
+                    sleep(RandomUtil.randomInt(500, 1000));
                     Api.context.put("storeDetail", storeDetail);
                 }
                 if (Api.context.get("storeDetail") == null) {
@@ -61,9 +56,7 @@ public class Sentinel {
                 List<GoodDto> goodDtos = null;
                 for (int i = 0; i < loopTryCount && goodDtos == null; i++) {
                     goodDtos = Api.getCart((Map<String, Object>) Api.context.get("storeDetail"));
-                    if (goodDtos == null) {
-                        sleep(RandomUtil.randomInt(500, 1000));
-                    }
+                    sleep(RandomUtil.randomInt(500, 1000));
                 }
                 if (goodDtos == null) {
                     continue;
@@ -76,23 +69,34 @@ public class Sentinel {
                 Map<String, Object> capacityData = null;
                 for (int i = 0; i < loopTryCount && capacityData == null; i++) {
                     capacityData = Api.getCapacityData((Map<String, Object>) Api.context.get("storeDetail"));
-                    if (capacityData == null) {
-                        sleep(RandomUtil.randomInt(500, 1000));
-                    }
+                    sleep(RandomUtil.randomInt(500, 1000));
                 }
                 if (capacityData == null) {
                     continue;
                 }
 
-                for (int i = 0; i < 15; i++) {
-                    if (Api.commitPay(goodDtos, capacityData, (Map<String, Object>) Api.context.get("deliveryAddressDetail"), (Map<String, Object>) Api.context.get("storeDetail"), (List<CouponDto>) Api.context.get("couponDtoList"))) {
-                        Api.play("下单成功");
-//                        Api.addCartGoodsInfo(goodDtos);
-                        break;
+                Double totalWeight = 0.0;
+                Integer flag = 0;
+                for (int j = 0; j < goodDtos.size(); j++) {
+                    totalWeight = totalWeight + goodDtos.get(j).getWeight() * Double.parseDouble(goodDtos.get(j).getQuantity());
+                    List<GoodDto> orderGood = new ArrayList<>();
+                    if (totalWeight > 30) {
+                        orderGood = goodDtos.subList(flag, j - 1);
+                    } else if (j == goodDtos.size() - 1) {
+                        orderGood = goodDtos.subList(flag, j);
                     }
-                    sleep(RandomUtil.randomInt(50, 100));
+                    if (!orderGood.isEmpty()) {
+                        for (int i = 0; i < loopTryCount; i++) {
+                            if (Api.commitPay(orderGood, capacityData, (Map<String, Object>) Api.context.get("deliveryAddressDetail"), (Map<String, Object>) Api.context.get("storeDetail"), (List<CouponDto>) Api.context.get("couponDtoList"))) {
+                                Api.play("极速达，下单成功");
+                                break;
+                            }
+                            sleep(RandomUtil.randomInt(500, 1000));
+                        }
+                        totalWeight = 0.0;
+                        flag = j;
+                    }
                 }
-
             } catch (Exception e) {
                 e.printStackTrace();
             }

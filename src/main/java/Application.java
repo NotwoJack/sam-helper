@@ -5,6 +5,7 @@ import java.util.Map;
 /**
  * 高峰抢单主程序
  */
+@Deprecated
 public class Application {
 
     public static void sleep(int millis) {

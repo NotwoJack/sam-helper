@@ -17,6 +17,8 @@ public class GoodDto {
 
     Boolean isSelected = true;
 
+    Boolean isLimited = false;
+
     Double weight;
 
     @Override

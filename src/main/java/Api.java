@@ -251,7 +251,6 @@ public class Api {
         } catch (JSONException e) {
             print(false, "【失败】请求过快被风控，请调整参数");
             e.printStackTrace();
-            System.exit(0);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -352,6 +351,7 @@ public class Api {
                             goodDto.setQuantity(good.getStr("quantity"));
                         }
                         if (!good.getJSONObject("purchaseLimitVO").isEmpty()){
+                            goodDto.isLimited = true;
                             if (good.getJSONObject("purchaseLimitVO").getInt("limitNum") < Integer.valueOf(goodDto.getQuantity())){
                                 goodDto.setQuantity(good.getJSONObject("purchaseLimitVO").getStr("limitNum"));
                             }
@@ -468,8 +468,9 @@ public class Api {
             if (!isSuccess(object, "提交订单")) {
                 return false;
             }
-            context.put("success", new HashMap<>());
             print(true, "【恭喜你】已成功下单 当前下单总金额：" + amount + "元");
+
+            context.put("limitedGood", goods.stream().filter(GoodDto::getIsLimited).collect(Collectors.toList()));
             if (UserConfig.coupon && couponDtoList != null) {
                 couponDtoList.remove(coupon);
                 context.put("couponDtoList", couponDtoList);
@@ -478,7 +479,6 @@ public class Api {
         } catch (JSONException e) {
             print(false, "【失败】请求过快被风控，请调整参数");
             e.printStackTrace();
-            System.exit(0);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -591,7 +591,7 @@ public class Api {
                     JSONArray goods = renderContent.getJSONArray("goodsList");
                     for (int h = 0; h < goods.size(); h++) {
                         JSONObject good = goods.getJSONObject(h);
-                        if (good.getBool("isAvailable") != null && good.getBool("isAvailable") && (good.getStr("title").contains("套餐") || good.getStr("title").contains("瑞士卷"))
+                        if (good.getBool("isAvailable") != null && good.getBool("isAvailable") && (good.getStr("title").contains("鲜") || good.getStr("title").contains("tt"))
                         ) {
                             Integer stockQuantity = good.getJSONObject("stockInfo").getInt("stockQuantity");
                             JSONArray priceInfoList = good.getJSONArray("priceInfo");
@@ -701,7 +701,6 @@ public class Api {
             if (couponDtoList.isEmpty()) {
                 return null;
             }
-//            print(true, "【成功】获取优惠券");
             context.put("couponDtoList", couponDtoList);
             return couponDtoList;
         } catch (Exception e) {

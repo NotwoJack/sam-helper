@@ -22,13 +22,17 @@ public class GuaranteeSentinel {
         int sleepMillisMax = 1500;
 
         //单轮轮询时请求异常（服务器高峰期限流策略）尝试次数
-        int loopTryCount = 8;
+        int loopTryCount = 10;
 
         Api.init("2");
         Map<String, Object> deliveryAddressDetail = Api.getDeliveryAddressDetail();
+        sleep(RandomUtil.randomInt(300, 500));
         Map<String, Object> storeDetail = Api.getMiniUnLoginStoreList(Double.parseDouble((String) Api.context.get("latitude")), Double.parseDouble((String) Api.context.get("longitude")));
-        Map<String, Object> capacityData = Api. getCapacityData(storeDetail);
+        sleep(RandomUtil.randomInt(300, 500));
+        Map<String, Object> capacityData = Api.getCapacityData(storeDetail);
+        sleep(RandomUtil.randomInt(300, 500));
         List<CouponDto> couponList = Api.getCouponList();
+        sleep(RandomUtil.randomInt(300, 500));
 
         List<GoodDto> saveGoodList = new ArrayList<>();
         while (!Api.context.containsKey("end")) {
@@ -38,14 +42,11 @@ public class GuaranteeSentinel {
                 List<GoodDto> goodDtos = null;
                 for (int i = 0; i < loopTryCount && goodDtos == null; i++) {
                     goodDtos = Api.getPageData(storeDetail);
-                    if (goodDtos == null) {
-                        sleep(RandomUtil.randomInt(1000, 1500));
-                    }
+                    sleep(RandomUtil.randomInt(1000, 1500));
                 }
                 if (goodDtos == null) {
                     continue;
-                }
-                if (saveGoodList.containsAll(goodDtos)) {
+                } else if (saveGoodList.containsAll(goodDtos)) {
                     System.out.println("全部商品都已经下单");
                     continue;
                 }
@@ -55,9 +56,7 @@ public class GuaranteeSentinel {
                 if (!goodDtos.isEmpty()) {
                     for (int i = 0; i < loopTryCount && addFlag == null; i++) {
                         addFlag = Api.addCartGoodsInfo(goodDtos);
-                        if (addFlag == null){
-                            sleep(RandomUtil.randomInt(1000, 1500));
-                        }
+                        sleep(RandomUtil.randomInt(1000, 1500));
                     }
                 }
                 if (addFlag == null) {
@@ -65,14 +64,13 @@ public class GuaranteeSentinel {
                 }
 
                 goodDtos.forEach(goodDto -> {
-                    for (int i = 0; i < 15; i++) {
-                        if (Api.commitPay(Arrays.asList(goodDto), capacityData, deliveryAddressDetail, storeDetail,couponList)) {
-                            Api.play("下单成功");
-//                            Api.addCartGoodsInfo(goodDtos);
+                    for (int i = 0; i < loopTryCount; i++) {
+                        if (Api.commitPay(Arrays.asList(goodDto), capacityData, deliveryAddressDetail, storeDetail, (List<CouponDto>) Api.context.get("couponDtoList"))) {
+                            Api.play("保供套餐，下单成功");
                             saveGoodList.add(goodDto);
                             break;
                         }
-                        sleep(RandomUtil.randomInt(50, 100));
+                        sleep(RandomUtil.randomInt(500, 1000));
                     }
                 });
 
