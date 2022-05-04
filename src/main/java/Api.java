@@ -591,7 +591,9 @@ public class Api {
                     JSONArray goods = renderContent.getJSONArray("goodsList");
                     for (int h = 0; h < goods.size(); h++) {
                         JSONObject good = goods.getJSONObject(h);
-                        if (good.getBool("isAvailable") != null && good.getBool("isAvailable") && (good.getStr("title").contains("鲜") || good.getStr("title").contains("tt"))
+                        if (good.getBool("isAvailable") != null
+                                && good.getBool("isAvailable")
+                                && good.getStr("title").contains("套餐")
                         ) {
                             Integer stockQuantity = good.getJSONObject("stockInfo").getInt("stockQuantity");
                             JSONArray priceInfoList = good.getJSONArray("priceInfo");
