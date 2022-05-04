@@ -234,11 +234,11 @@ public class Api {
 
             for (int i = 0; i < capcityResponseList.size(); i++) {
                 JSONObject capcityResponse = capcityResponseList.getJSONObject(i);
-                if (!capcityResponse.getBool("dateISFull") || "2".equals(context.get("deliveryType"))) {
+                if (!capcityResponse.getBool("dateISFull")) {
                     JSONArray times = capcityResponse.getJSONArray("list");
                     for (int j = 0; j < times.size(); j++) {
                         JSONObject time = times.getJSONObject(j);
-                        if (!time.getBool("timeISFull") || "2".equals(context.get("deliveryType"))) {
+                        if (!time.getBool("timeISFull")) {
                             map.put("startRealTime", time.get("startRealTime"));
                             map.put("endRealTime", time.get("endRealTime"));
                             print(true, "【成功】更新配送时间:" + time.getStr("startTime") + " -- " + time.getStr("endTime"));

@@ -46,7 +46,7 @@ public class GuaranteeSentinel {
                     continue;
                 }
                 if (saveGoodList.containsAll(goodDtos)) {
-                    System.out.println("全部套餐都已经下单");
+                    System.out.println("全部商品都已经下单");
                     continue;
                 }
 
@@ -68,6 +68,7 @@ public class GuaranteeSentinel {
                     for (int i = 0; i < 15; i++) {
                         if (Api.commitPay(Arrays.asList(goodDto), capacityData, deliveryAddressDetail, storeDetail,couponList)) {
                             Api.play("下单成功");
+//                            Api.addCartGoodsInfo(goodDtos);
                             saveGoodList.add(goodDto);
                             break;
                         }
