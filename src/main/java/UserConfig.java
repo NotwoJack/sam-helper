@@ -11,11 +11,11 @@ public class UserConfig {
     @Deprecated
     public static final String deliveryType = "1";
     //下单目标金额
-    public static final Integer targetAmount = 500;
+    public static final Integer targetAmount = 0;
     //是否使用优惠券
-    public static final Boolean coupon = true;
+    public static final Boolean coupon = false;
     //bark通知id
-    public static final String barkId = "wrkU4Qz9VHZuf7Pv7hco2S";
+    public static final String barkId = "";
     //Server酱 用户 Token，可选参数，获取方式：https://sct.ftqq.com/sendkey
     public static final String ftqqSendKey = "";
     /**
@@ -32,8 +32,7 @@ public class UserConfig {
         headers.put("Accept-Language", "zh-CN,zh;q=0.9");
         headers.put("User-Agent", "SamClub/5.0.45 (iPhone; iOS 15.4; Scale/3.00)");
         headers.put("device-type", "mini_program");
-        headers.put("auth-token", "740d926b981716f4a42ea734ed0c250a5c54c502a29294e5592d635eb97214d8");
-//        headers.put("auth-token", "740d926b981716f47b1cb146b04a11ba9dfcdb914034d2fe74801c5441f73179");
+        headers.put("auth-token", "需要填写");
         return headers;
     }
 
