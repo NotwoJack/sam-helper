@@ -13,7 +13,8 @@ public class ApplicationTest {
         Api.init(UserConfig.deliveryType);
         Map<String, Object> deliveryAddressDetail = Api.getDeliveryAddressDetail();
         Map<String, Object> storeDetail = Api.getMiniUnLoginStoreList(Double.parseDouble((String) deliveryAddressDetail.get("latitude")), Double.parseDouble((String) deliveryAddressDetail.get("longitude")));
-        List<GoodDto> goodDtos = Api.getCart(storeDetail);
+//        List<GoodDto> goodDtos = Api.getCart(storeDetail);
+        List<GoodDto> goodDtos = Api.getGoodsListByCategoryId(storeDetail);
 //        Api.barkNotice(UserConfig.barkId);
 //        Api.getCapacityData(init.get("storeDetail"));
 //        List<GoodDto> goodDtos = new ArrayList<>();
