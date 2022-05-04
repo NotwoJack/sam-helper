@@ -5,6 +5,7 @@ import java.util.Map;
 /**
  * 高峰抢单主程序
  */
+@Deprecated
 public class Application {
 
     public static void sleep(int millis) {
@@ -34,6 +35,7 @@ public class Application {
         Api.init(UserConfig.deliveryType);
         Map<String, Object> deliveryAddressDetail = Api.getDeliveryAddressDetail();
         Map<String, Object> storeDetail = Api.getMiniUnLoginStoreList(Double.parseDouble((String) deliveryAddressDetail.get("latitude")), Double.parseDouble((String) deliveryAddressDetail.get("longitude")));
+        List<CouponDto> couponList = Api.getCouponList();
 
         for (int i = 0; i < baseTheadSize; i++) {
             new Thread(() -> {
@@ -68,7 +70,7 @@ public class Application {
                         sleep(sleepMillis);
                         continue;
                     }
-                    if (Api.commitPay((List<GoodDto>) Api.context.get("goods"), (Map<String, Object>) Api.context.get("time"), deliveryAddressDetail, storeDetail)){
+                    if (Api.commitPay((List<GoodDto>) Api.context.get("goods"), (Map<String, Object>) Api.context.get("time"), deliveryAddressDetail, storeDetail,couponList)){
                         System.out.println("铃声持续1分钟，终止程序即可，如果还需要下单再继续运行程序");
                         Api.context.put("end", new HashMap<>());
                         Api.play("下单成功");

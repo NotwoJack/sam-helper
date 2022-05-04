@@ -19,6 +19,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * 接口封装
@@ -34,11 +35,11 @@ public class Api {
      */
     public static Boolean init(String deliveryType) {
         try {
-            if ("1".equals(deliveryType)){
+            if ("1".equals(deliveryType)) {
                 context.put("deliveryType", "1");
                 context.put("cartDeliveryType", "1");
                 context.put("storeType", 4);
-            } else if ("2".equals(deliveryType)){
+            } else if ("2".equals(deliveryType)) {
                 context.put("deliveryType", "2");
                 context.put("cartDeliveryType", "2");
                 context.put("storeType", 2);
@@ -53,14 +54,14 @@ public class Api {
     @SneakyThrows
     public static void play(String message) {
         new Thread(() -> {
-            while (true){
+            while (true) {
                 // bark推送
                 if (!UserConfig.barkId.isEmpty()) {
-                    barkNotice(UserConfig.barkId,message);
+                    barkNotice(UserConfig.barkId, message);
                 }
                 // Server 酱推送
                 if (!UserConfig.ftqqSendKey.isEmpty()) {
-                    ftqqNotice(UserConfig.ftqqSendKey,message);
+                    ftqqNotice(UserConfig.ftqqSendKey, message);
                 }
                 //这里还可以使用企业微信或者钉钉的提供的webhook  自己写代码 很简单 就是按对应数据格式发一个请求到企业微信或者钉钉
                 try {
@@ -130,8 +131,8 @@ public class Api {
             Map<String, Object> map = new HashMap<>();
             JSONObject data = object.getJSONObject("data");
             map.put("addressId", data.getStr("addressId"));
-            map.put("latitude", data.getStr("latitude"));
-            map.put("longitude", data.getStr("longitude"));
+            context.put("latitude", data.getStr("latitude"));
+            context.put("longitude", data.getStr("longitude"));
             print(true, "【成功】获取收货地址"
                     + " 收货地址：" + data.getStr("cityName") + data.getStr("districtName") + data.getStr("detailAddress")
                     + " 收货人：" + data.getStr("name") + " 手机号：" + data.getStr("phone"));
@@ -178,7 +179,7 @@ public class Api {
                     map.put("storeName", store.getStr("storeName"));
                 }
             }
-            if (map.isEmpty()){
+            if (map.isEmpty()) {
                 print(false, "【失败】未获取到商店信息/商店未营业");
                 return null;
             }
@@ -219,9 +220,21 @@ public class Api {
             }
             Map<String, Object> map = new HashMap<>();
             JSONArray capcityResponseList = object.getJSONObject("data").getJSONArray("capcityResponseList");
-            for (int i = 0; i < capcityResponseList.size(); i++){
+            //对于只有一个时间段段配送直接预判处理
+            if (capcityResponseList.size() == 1){
+                JSONArray list = capcityResponseList.getJSONObject(0).getJSONArray("list");
+                if (list.size() == 1){
+                    JSONObject time = list.getJSONObject(0);
+                    map.put("startRealTime", time.get("startRealTime"));
+                    map.put("endRealTime", time.get("endRealTime"));
+                    print(true, "【成功】单一配送时间，直接预处理:" + time.getStr("startTime") + " -- " + time.getStr("endTime"));
+                    return map;
+                }
+            }
+
+            for (int i = 0; i < capcityResponseList.size(); i++) {
                 JSONObject capcityResponse = capcityResponseList.getJSONObject(i);
-                if (!capcityResponse.getBool("dateISFull")){
+                if (!capcityResponse.getBool("dateISFull")) {
                     JSONArray times = capcityResponse.getJSONArray("list");
                     for (int j = 0; j < times.size(); j++) {
                         JSONObject time = times.getJSONObject(j);
@@ -238,7 +251,6 @@ public class Api {
         } catch (JSONException e) {
             print(false, "【失败】请求过快被风控，请调整参数");
             e.printStackTrace();
-            System.exit(0);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -325,7 +337,7 @@ public class Api {
                 print(false, "【失败】购物车目前暂无可下单商品");
                 return null;
             } else {
-                double amount = object.getJSONObject("data").getDouble("selectedAmount") / 100;
+                double amount = 0;
                 JSONArray goods = object.getJSONObject("data").getJSONObject("miniProgramGoodsInfo").getJSONArray("normalGoodsList");
                 List<GoodDto> goodDtos = new ArrayList<>();
                 for (int i = 0; i < goods.size(); i++) {
@@ -333,12 +345,20 @@ public class Api {
                     if (good.getBool("isSelected") && (Objects.equals(good.getInt("storeType"), storeDetail.get("storeType")))) {
                         GoodDto goodDto = new GoodDto();
                         goodDto.setSpuId(good.getStr("spuId"));
-                        if (good.getInt("quantity") >= good.getInt("stockQuantity")){
+                        if (good.getInt("quantity") >= good.getInt("stockQuantity")) {
                             goodDto.setQuantity(good.getStr("stockQuantity"));
-                        }else {
+                        } else {
                             goodDto.setQuantity(good.getStr("quantity"));
                         }
+                        if (!good.getJSONObject("purchaseLimitVO").isEmpty()){
+                            goodDto.isLimited = true;
+                            if (good.getJSONObject("purchaseLimitVO").getInt("limitNum") < Integer.valueOf(goodDto.getQuantity())){
+                                goodDto.setQuantity(good.getJSONObject("purchaseLimitVO").getStr("limitNum"));
+                            }
+                        }
                         goodDto.setStoreId(good.getStr("storeId"));
+                        goodDto.setWeight(good.getDouble("weight"));
+                        amount = amount + (Double.parseDouble(goodDto.getQuantity()) * Double.parseDouble(good.getStr("price"))) / 100;
                         goodDtos.add(goodDto);
                     }
                 }
@@ -352,13 +372,13 @@ public class Api {
         return null;
     }
 
-    public static void barkNotice(String barkId,String message) {
+    public static void barkNotice(String barkId, String message) {
         // sound=minuet 这里可在bark app选择自己喜爱的铃声
         HttpRequest httpRequest = HttpUtil.createGet("https://api.day.app/" + barkId + "/山姆下单助手：" + message + "?sound=minuet");
         String body = httpRequest.execute().body();
     }
 
-    public static void ftqqNotice(String sendKey,String message) {
+    public static void ftqqNotice(String sendKey, String message) {
         HttpRequest httpRequest = HttpUtil.createPost("https://sctapi.ftqq.com/" + sendKey + ".send?title=" + message);
         Map<String, String> headers = new HashMap<>();
         headers.put("Content-Type", "application/x-www-form-urlencoded");
@@ -375,7 +395,7 @@ public class Api {
      * @param storeDetail           商店信息
      * @return 下单成功与否
      */
-    public static Boolean commitPay(List<GoodDto> goods, Map<String, Object> capacityData, Map<String, Object> deliveryAddressDetail, Map<String, Object> storeDetail) {
+    public static Boolean commitPay(List<GoodDto> goods, Map<String, Object> capacityData, Map<String, Object> deliveryAddressDetail, Map<String, Object> storeDetail, List<CouponDto> couponDtoList) {
         try {
             HttpRequest httpRequest = HttpUtil.createPost("https://api-sams.walmartmobile.cn/api/v1/sams/trade/settlement/commitPay");
 
@@ -389,7 +409,6 @@ public class Api {
             request.put("sceneCode", 1074);
             request.put("isSelectShoppingNotes", true);
             request.put("cartDeliveryType", context.get("cartDeliveryType"));
-            request.put("couponList", new ArrayList<>());
             request.put("floorId", 1);
             request.put("amount", 100);
             request.put("payType", 0);
@@ -420,6 +439,25 @@ public class Api {
             storeInfo.put("storeType", storeDetail.get("storeType"));
             storeInfo.put("areaBlockId", storeDetail.get("areaBlockId"));
             request.put("storeInfo", storeInfo);
+
+            CouponDto coupon = null;
+            Double amount = (Double) context.get("amount");
+            if (UserConfig.coupon && couponDtoList != null) {
+                Double finalAmount = amount;
+                coupon = couponDtoList.stream()
+                        .filter(couponDto -> couponDto.getCondition() < finalAmount)
+                        .sorted(Comparator.comparing(CouponDto::getDiscount).reversed())
+                        .collect(Collectors.toList())
+                        .get(0);
+                Map<String, String> couponMap = new HashMap<>();
+                List<Map> couponList = new ArrayList<>();
+                couponMap.put("promotionId", coupon.getRuleId());
+                couponMap.put("storeId", (String) storeDetail.get("storeId"));
+                couponList.add(couponMap);
+                request.put("couponList", couponList);
+                amount = amount - coupon.getDiscount();
+            }
+
             httpRequest.body(JSONUtil.toJsonStr(request));
             String body = httpRequest.execute().body();
             if (body == null || body.isEmpty()) {
@@ -430,13 +468,17 @@ public class Api {
             if (!isSuccess(object, "提交订单")) {
                 return false;
             }
-            context.put("success", new HashMap<>());
-            print(true,"【恭喜你】已成功下单 当前下单总金额：" + context.get("amount") + "元");
+            print(true, "【恭喜你】已成功下单 当前下单总金额：" + amount + "元");
+
+            context.put("limitedGood", goods.stream().filter(GoodDto::getIsLimited).collect(Collectors.toList()));
+            if (UserConfig.coupon && couponDtoList != null) {
+                couponDtoList.remove(coupon);
+                context.put("couponDtoList", couponDtoList);
+            }
             return true;
         } catch (JSONException e) {
             print(false, "【失败】请求过快被风控，请调整参数");
             e.printStackTrace();
-            System.exit(0);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -449,6 +491,7 @@ public class Api {
      * @param storeDetail 商店信息
      * @return 购物车商品列表
      */
+    @Deprecated
     public static List<GoodDto> getGoodsListByCategoryId(Map<String, Object> storeDetail) {
         try {
             HttpRequest httpRequest = HttpUtil.createPost("https://api-sams.walmartmobile.cn/api/v1/sams/goods-portal/grouping/list");
@@ -492,28 +535,102 @@ public class Api {
                     JSONArray priceInfoList = good.getJSONArray("priceInfo");
                     Iterator<Object> iterator = priceInfoList.iterator();
                     double price = 0;
-                    while (iterator.hasNext()){
+                    while (iterator.hasNext()) {
                         JSONObject priceInfo = (JSONObject) iterator.next();
-                        if (priceInfo.getInt("priceType") == 4){
+                        if (priceInfo.getInt("priceType") == 4) {
                             price = priceInfo.getDouble("price") / 100;
                         }
                     }
                     amount = amount + price;
-                    System.out.println(good.getStr("title") + " 价格：" + price + " 剩余库存："+ stockQuantity + "\n" + good.getStr("subTitle"));
+                    System.out.println(good.getStr("title") + " 价格：" + price + " 剩余库存：" + stockQuantity + "\n" + good.getStr("subTitle"));
                 }
             }
-            if (goodDtos.isEmpty()){
+            if (goodDtos.isEmpty()) {
                 print(false, "【失败】暂未获取到有货的保供套餐");
                 return null;
             }
             print(true, "【成功】获取到保供套餐");
-            context.put("amount",amount);
+            context.put("amount", amount);
             return goodDtos;
         } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
     }
+
+    public static List<GoodDto> getPageData(Map<String, Object> storeDetail) {
+        try {
+            HttpRequest httpRequest = HttpUtil.createPost("https://api-sams.walmartmobile.cn/api/v1/sams/decoration/portal/show/getPageData");
+            Map<String, String> headers = UserConfig.getHeaders();
+            httpRequest.addHeaders(headers);
+            Map<String, Object> request = UserConfig.getIdInfo();
+
+            request.put("pageContentId", "1187641882302384150");
+            request.put("authorize", true);
+            request.put("latitude", context.get("latitude"));
+            request.put("longitude", context.get("longitude"));
+            request.put("storeInfoList", Arrays.asList(storeDetail));
+
+            httpRequest.body(JSONUtil.toJsonStr(request));
+            String body = httpRequest.execute().body();
+            if (body == null || body.isEmpty()) {
+                print(false, "请求失败，可能触发403限流");
+                return null;
+            }
+            JSONObject object = JSONUtil.parseObj(body);
+            if (!isSuccess
+                    (object, "获取保供套餐列表")) {
+                return null;
+            }
+            JSONArray pageModuleVOList = object.getJSONObject("data").getJSONArray("pageModuleVOList");
+            List<GoodDto> goodDtos = new ArrayList<>();
+            double amount = 0;
+            for (int i = 0; i < pageModuleVOList.size(); i++) {
+                JSONObject renderContent = pageModuleVOList.getJSONObject(i).getJSONObject("renderContent");
+                if (renderContent.getJSONArray("goodsList") != null && !renderContent.getJSONArray("goodsList").isEmpty()) {
+                    JSONArray goods = renderContent.getJSONArray("goodsList");
+                    for (int h = 0; h < goods.size(); h++) {
+                        JSONObject good = goods.getJSONObject(h);
+                        if (good.getBool("isAvailable") != null && good.getBool("isAvailable") && (good.getStr("title").contains("鲜") || good.getStr("title").contains("tt"))
+                        ) {
+                            Integer stockQuantity = good.getJSONObject("stockInfo").getInt("stockQuantity");
+                            JSONArray priceInfoList = good.getJSONArray("priceInfo");
+                            Iterator<Object> iterator = priceInfoList.iterator();
+                            double price = 0;
+                            while (iterator.hasNext()) {
+                                JSONObject priceInfo = (JSONObject) iterator.next();
+                                if (priceInfo.getInt("priceType") == 4) {
+                                    price = priceInfo.getDouble("price") / 100;
+                                }
+                            }
+                            if (stockQuantity > 0) {
+                                GoodDto goodDto = new GoodDto();
+                                goodDto.setSpuId(good.getStr("spuId"));
+                                goodDto.setQuantity("1");
+                                goodDto.setStoreId(good.getStr("storeId"));
+                                goodDtos.add(goodDto);
+                                amount = amount + price * Double.parseDouble(goodDto.getQuantity());
+                                System.out.println(good.getStr("title") + " 价格：" + price + "元 剩余库存：" + stockQuantity + "\n" + good.getStr("subTitle"));
+                            } else {
+                                System.out.println(good.getStr("title") + " 价格：" + price + "元 剩余库存：" + stockQuantity);
+                            }
+                        }
+                    }
+                }
+            }
+            if (goodDtos.isEmpty()) {
+                print(false, "【失败】暂未获取到有货的保供套餐");
+                return null;
+            }
+            print(true, "【成功】获取到保供套餐");
+            context.put("amount", amount);
+            return goodDtos;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
 
     /**
      * 将商品添加到购物车
@@ -536,7 +653,7 @@ public class Api {
                 cartGoodsInfo.put("event_tracking_id", "sam_app_cart_category_buy");
                 cartGoodsInfo.put("increaseQuantity", goodDto.getQuantity());
                 cartGoodsInfo.put("storeId", goodDto.getStoreId());
-                cartGoodsInfo.put("spuId",goodDto.getSpuId());
+                cartGoodsInfo.put("spuId", goodDto.getSpuId());
                 cartGoodsInfoList.add(cartGoodsInfo);
             });
             request.put("cartGoodsInfoList", cartGoodsInfoList);
@@ -555,4 +672,40 @@ public class Api {
         return null;
     }
 
+    public static List<CouponDto> getCouponList() {
+        try {
+            HttpRequest httpRequest = HttpUtil.createPost("https://api-sams.walmartmobile.cn/api/v1/sams/coupon/coupon/query");
+            httpRequest.addHeaders(UserConfig.getHeaders());
+            Map<String, Object> request = UserConfig.getIdInfo();
+            request.put("pageSize", 20);
+            request.put("pageNum", 1);
+            request.put("status", "1");
+
+            httpRequest.body(JSONUtil.toJsonStr(request));
+            String body = httpRequest.execute().body();
+            JSONObject object = JSONUtil.parseObj(body);
+            if (!isSuccess(object, "获取优惠券")) {
+                return null;
+            }
+            JSONArray couponList = object.getJSONObject("data").getJSONArray("couponInfoList");
+            List<CouponDto> couponDtoList = new ArrayList<>();
+            for (int i = 0; i < couponList.size(); i++) {
+                if (couponList.getJSONObject(i).getInt("couponType") == 1) {
+                    CouponDto couponDto = new CouponDto();
+                    couponDto.setCondition(Integer.valueOf(couponList.getJSONObject(i).getJSONObject("promotion").getJSONObject("condition").getStr("value")) / 100);
+                    couponDto.setDiscount(Integer.valueOf(couponList.getJSONObject(i).getJSONObject("promotion").getJSONObject("discount").getStr("value")) / 100);
+                    couponDto.setRuleId(couponList.getJSONObject(i).getStr("ruleId"));
+                    couponDtoList.add(couponDto);
+                }
+            }
+            if (couponDtoList.isEmpty()) {
+                return null;
+            }
+            context.put("couponDtoList", couponDtoList);
+            return couponDtoList;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }
