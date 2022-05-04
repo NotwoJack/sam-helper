@@ -42,7 +42,7 @@ public class GuaranteeSentinel {
                 List<GoodDto> goodDtos = null;
                 for (int i = 0; i < loopTryCount && goodDtos == null; i++) {
                     goodDtos = Api.getPageData(storeDetail);
-                    sleep(RandomUtil.randomInt(1000, 1500));
+                    sleep(RandomUtil.randomInt(500, 1000));
                 }
                 if (goodDtos == null) {
                     continue;
@@ -56,7 +56,7 @@ public class GuaranteeSentinel {
                 if (!goodDtos.isEmpty()) {
                     for (int i = 0; i < loopTryCount && addFlag == null; i++) {
                         addFlag = Api.addCartGoodsInfo(goodDtos);
-                        sleep(RandomUtil.randomInt(1000, 1500));
+                        sleep(RandomUtil.randomInt(500, 1000));
                     }
                 }
                 if (addFlag == null) {
