@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
  */
 public class Api {
 
-    public static final Map<String, Object> context = new ConcurrentHashMap<>();
+    public static final Map<String, Object> context = new HashMap<>();
 
     /**
      * 获取用户初始化信息，收货地址信息和匹配商店信息。为app上设定的默认值
