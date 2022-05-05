@@ -26,13 +26,12 @@ public class GuaranteeSentinel {
 
         Api.init("2");
         Map<String, Object> deliveryAddressDetail = Api.getDeliveryAddressDetail();
-        sleep(RandomUtil.randomInt(300, 500));
+        sleep(RandomUtil.randomInt(sleepMillisMin, sleepMillisMax));
         Map<String, Object> storeDetail = Api.getMiniUnLoginStoreList(Double.parseDouble((String) Api.context.get("latitude")), Double.parseDouble((String) Api.context.get("longitude")));
-        sleep(RandomUtil.randomInt(300, 500));
+        sleep(RandomUtil.randomInt(sleepMillisMin, sleepMillisMax));
         Map<String, Object> capacityData = Api.getCapacityData(storeDetail);
-        sleep(RandomUtil.randomInt(300, 500));
+        sleep(RandomUtil.randomInt(sleepMillisMin, sleepMillisMax));
         List<CouponDto> couponList = Api.getCouponList();
-        sleep(RandomUtil.randomInt(300, 500));
 
         List<GoodDto> saveGoodList = new ArrayList<>();
         while (!Api.context.containsKey("end")) {
@@ -42,7 +41,7 @@ public class GuaranteeSentinel {
                 List<GoodDto> goodDtos = null;
                 for (int i = 0; i < loopTryCount && goodDtos == null; i++) {
                     goodDtos = Api.getPageData(storeDetail);
-                    sleep(RandomUtil.randomInt(500, 1000));
+                    sleep(RandomUtil.randomInt(sleepMillisMin, sleepMillisMax));
                 }
                 if (goodDtos == null) {
                     continue;
@@ -56,7 +55,7 @@ public class GuaranteeSentinel {
                 if (!goodDtos.isEmpty()) {
                     for (int i = 0; i < loopTryCount && addFlag == null; i++) {
                         addFlag = Api.addCartGoodsInfo(goodDtos);
-                        sleep(RandomUtil.randomInt(500, 1000));
+                        sleep(RandomUtil.randomInt(sleepMillisMin, sleepMillisMax));
                     }
                 }
                 if (addFlag == null) {
@@ -70,7 +69,7 @@ public class GuaranteeSentinel {
                             saveGoodList.add(goodDto);
                             break;
                         }
-                        sleep(RandomUtil.randomInt(500, 1000));
+                        sleep(RandomUtil.randomInt(sleepMillisMin, sleepMillisMax));
                     }
                 });
 

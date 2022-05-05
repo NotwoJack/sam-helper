@@ -21,9 +21,9 @@ public class Sentinel {
     public static void main(String[] args) {
 
         //执行任务请求间隔时间最小值
-        int sleepMillisMin = 1000;
+        int sleepMillisMin = 500;
         //执行任务请求间隔时间最大值
-        int sleepMillisMax = 5000;
+        int sleepMillisMax = 1000;
 
         //单轮轮询时请求异常（服务器高峰期限流策略）尝试次数
         int loopTryCount = 10;
@@ -37,7 +37,7 @@ public class Sentinel {
 
                 for (int i = 0; i < loopTryCount && (Api.context.get("deliveryAddressDetail") == null); i++) {
                     Map<String, Object> deliveryAddressDetail = Api.getDeliveryAddressDetail();
-                    sleep(RandomUtil.randomInt(500, 1000));
+                    sleep(RandomUtil.randomInt(sleepMillisMin, sleepMillisMax));
                     Api.context.put("deliveryAddressDetail", deliveryAddressDetail);
                 }
                 if (Api.context.get("deliveryAddressDetail") == null) {
@@ -46,7 +46,7 @@ public class Sentinel {
 
                 for (int i = 0; i < loopTryCount && (Api.context.get("storeDetail") == null); i++) {
                     Map<String, Object> storeDetail = Api.getMiniUnLoginStoreList(Double.parseDouble((String) Api.context.get("latitude")), Double.parseDouble((String) Api.context.get("longitude")));
-                    sleep(RandomUtil.randomInt(500, 1000));
+                    sleep(RandomUtil.randomInt(sleepMillisMin, sleepMillisMax));
                     Api.context.put("storeDetail", storeDetail);
                 }
                 if (Api.context.get("storeDetail") == null) {
@@ -56,7 +56,7 @@ public class Sentinel {
                 List<GoodDto> goodDtos = null;
                 for (int i = 0; i < loopTryCount && goodDtos == null; i++) {
                     goodDtos = Api.getCart((Map<String, Object>) Api.context.get("storeDetail"));
-                    sleep(RandomUtil.randomInt(500, 1000));
+                    sleep(RandomUtil.randomInt(sleepMillisMin, sleepMillisMax));
                 }
                 if (goodDtos == null) {
                     continue;
@@ -69,7 +69,7 @@ public class Sentinel {
                 Map<String, Object> capacityData = null;
                 for (int i = 0; i < loopTryCount && capacityData == null; i++) {
                     capacityData = Api.getCapacityData((Map<String, Object>) Api.context.get("storeDetail"));
-                    sleep(RandomUtil.randomInt(500, 1000));
+                    sleep(RandomUtil.randomInt(sleepMillisMin, sleepMillisMax));
                 }
                 if (capacityData == null) {
                     continue;
@@ -91,7 +91,7 @@ public class Sentinel {
                                 Api.play("极速达，下单成功");
                                 break;
                             }
-                            sleep(RandomUtil.randomInt(500, 1000));
+                            sleep(RandomUtil.randomInt(sleepMillisMin, sleepMillisMax));
                         }
                         totalWeight = 0.0;
                         flag = j;
