@@ -44,6 +44,7 @@ public class Api {
                 context.put("cartDeliveryType", "2");
                 context.put("storeType", 2);
             }
+            context.put("limitedGood", new ArrayList<GoodDto>());
             return true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -221,13 +222,13 @@ public class Api {
             Map<String, Object> map = new HashMap<>();
             JSONArray capcityResponseList = object.getJSONObject("data").getJSONArray("capcityResponseList");
             //对于只有一个时间段段配送直接预判处理
-            if (capcityResponseList.size() == 1){
+            if (capcityResponseList.size() == 1) {
                 JSONArray list = capcityResponseList.getJSONObject(0).getJSONArray("list");
-                if (list.size() == 1){
+                if (list.size() == 1) {
                     JSONObject time = list.getJSONObject(0);
                     map.put("startRealTime", time.get("startRealTime"));
                     map.put("endRealTime", time.get("endRealTime"));
-                    print(true, "【成功】单一配送时间，直接预处理:" + time.getStr("startTime") + " -- " + time.getStr("endTime"));
+                    print(true, "【成功】单一配送时间，预处理:" + capcityResponseList.getJSONObject(0).getStr("strDate") + " " + time.getStr("startTime") + " -- " + time.getStr("endTime"));
                     return map;
                 }
             }
@@ -241,7 +242,7 @@ public class Api {
                         if (!time.getBool("timeISFull")) {
                             map.put("startRealTime", time.get("startRealTime"));
                             map.put("endRealTime", time.get("endRealTime"));
-                            print(true, "【成功】更新配送时间:" + time.getStr("startTime") + " -- " + time.getStr("endTime"));
+                            print(true, "【成功】更新配送时间:" + capcityResponse.getStr("strDate") + time.getStr("startTime") + " -- " + time.getStr("endTime"));
                             return map;
                         }
                     }
@@ -342,28 +343,35 @@ public class Api {
                 List<GoodDto> goodDtos = new ArrayList<>();
                 for (int i = 0; i < goods.size(); i++) {
                     JSONObject good = goods.getJSONObject(i);
-                    if (good.getBool("isSelected") && (Objects.equals(good.getInt("storeType"), storeDetail.get("storeType")))) {
+                    if (good.getBool("isSelected")
+                            && (Objects.equals(good.getInt("storeType"), storeDetail.get("storeType"))
+                    )) {
                         GoodDto goodDto = new GoodDto();
                         goodDto.setSpuId(good.getStr("spuId"));
+                        List<GoodDto> limitedGood = (List<GoodDto>) context.get("limitedGood");
+                        if (limitedGood != null && limitedGood.contains(goodDto)) {
+                            break;
+                        }
                         if (good.getInt("quantity") >= good.getInt("stockQuantity")) {
                             goodDto.setQuantity(good.getStr("stockQuantity"));
                         } else {
                             goodDto.setQuantity(good.getStr("quantity"));
                         }
-                        if (!good.getJSONObject("purchaseLimitVO").isEmpty()){
-                            goodDto.isLimited = true;
-                            if (good.getJSONObject("purchaseLimitVO").getInt("limitNum") < Integer.valueOf(goodDto.getQuantity())){
+                        if (!good.getJSONObject("purchaseLimitVO").isEmpty()) {
+                            goodDto.setIsLimited(true);
+                            if (good.getJSONObject("purchaseLimitVO").getInt("limitNum") < Integer.valueOf(goodDto.getQuantity())) {
                                 goodDto.setQuantity(good.getJSONObject("purchaseLimitVO").getStr("limitNum"));
                             }
                         }
                         goodDto.setStoreId(good.getStr("storeId"));
                         goodDto.setWeight(good.getDouble("weight"));
-                        amount = amount + (Double.parseDouble(goodDto.getQuantity()) * Double.parseDouble(good.getStr("price"))) / 100;
+                        goodDto.setPrice(Double.parseDouble(good.getStr("price")) / 100);
+                        amount = amount + (Double.parseDouble(goodDto.getQuantity()) * goodDto.getPrice());
                         goodDtos.add(goodDto);
                     }
                 }
                 context.put("amount", amount);
-                print(true, "【成功】更新购物车，总金额：" + amount + "元");
+                print(true, "【成功】更新购物车，可下单总金额：" + amount + "元");
                 return goodDtos;
             }
         } catch (Exception e) {
@@ -440,22 +448,26 @@ public class Api {
             storeInfo.put("areaBlockId", storeDetail.get("areaBlockId"));
             request.put("storeInfo", storeInfo);
 
+            Double amount = 0.0;
+            for (GoodDto good : goods) {
+                amount = amount + good.getPrice() * Integer.parseInt(good.getQuantity());
+            }
             CouponDto coupon = null;
-            Double amount = (Double) context.get("amount");
             if (UserConfig.coupon && couponDtoList != null) {
                 Double finalAmount = amount;
-                coupon = couponDtoList.stream()
+                Optional<CouponDto> optionalCouponDto = couponDtoList.stream()
                         .filter(couponDto -> couponDto.getCondition() < finalAmount)
-                        .sorted(Comparator.comparing(CouponDto::getDiscount).reversed())
-                        .collect(Collectors.toList())
-                        .get(0);
-                Map<String, String> couponMap = new HashMap<>();
-                List<Map> couponList = new ArrayList<>();
-                couponMap.put("promotionId", coupon.getRuleId());
-                couponMap.put("storeId", (String) storeDetail.get("storeId"));
-                couponList.add(couponMap);
-                request.put("couponList", couponList);
-                amount = amount - coupon.getDiscount();
+                        .max(Comparator.comparing(CouponDto::getDiscount));
+                if (optionalCouponDto.isPresent()) {
+                    coupon = optionalCouponDto.get();
+                    Map<String, String> couponMap = new HashMap<>();
+                    List<Map> couponList = new ArrayList<>();
+                    couponMap.put("promotionId", coupon.getRuleId());
+                    couponMap.put("storeId", (String) storeDetail.get("storeId"));
+                    couponList.add(couponMap);
+                    request.put("couponList", couponList);
+                    amount = amount - coupon.getDiscount();
+                }
             }
 
             httpRequest.body(JSONUtil.toJsonStr(request));
@@ -469,9 +481,11 @@ public class Api {
                 return false;
             }
             print(true, "【恭喜你】已成功下单 当前下单总金额：" + amount + "元");
-
-            context.put("limitedGood", goods.stream().filter(GoodDto::getIsLimited).collect(Collectors.toList()));
-            if (UserConfig.coupon && couponDtoList != null) {
+            List<GoodDto> limitedGood = (List<GoodDto>) context.get("limitedGood");
+            limitedGood.addAll(goods.stream().filter(GoodDto::getIsLimited).collect(Collectors.toList()));
+            context.put("limitedGood", limitedGood);
+            if (coupon != null) {
+                print(true, "【成功】使用优惠卷，满" + coupon.getCondition() + "减" + coupon.getDiscount());
                 couponDtoList.remove(coupon);
                 context.put("couponDtoList", couponDtoList);
             }
@@ -522,7 +536,6 @@ public class Api {
             }
             JSONArray goods = object.getJSONObject("data").getJSONArray("dataList");
             List<GoodDto> goodDtos = new ArrayList<>();
-            double amount = 0;
             for (int i = 0; i < goods.size(); i++) {
                 JSONObject good = goods.getJSONObject(i);
                 Integer stockQuantity = good.getJSONObject("stockInfo").getInt("stockQuantity");
@@ -541,7 +554,6 @@ public class Api {
                             price = priceInfo.getDouble("price") / 100;
                         }
                     }
-                    amount = amount + price;
                     System.out.println(good.getStr("title") + " 价格：" + price + " 剩余库存：" + stockQuantity + "\n" + good.getStr("subTitle"));
                 }
             }
@@ -550,7 +562,6 @@ public class Api {
                 return null;
             }
             print(true, "【成功】获取到保供套餐");
-            context.put("amount", amount);
             return goodDtos;
         } catch (Exception e) {
             e.printStackTrace();
@@ -584,7 +595,6 @@ public class Api {
             }
             JSONArray pageModuleVOList = object.getJSONObject("data").getJSONArray("pageModuleVOList");
             List<GoodDto> goodDtos = new ArrayList<>();
-            double amount = 0;
             for (int i = 0; i < pageModuleVOList.size(); i++) {
                 JSONObject renderContent = pageModuleVOList.getJSONObject(i).getJSONObject("renderContent");
                 if (renderContent.getJSONArray("goodsList") != null && !renderContent.getJSONArray("goodsList").isEmpty()) {
@@ -593,7 +603,7 @@ public class Api {
                         JSONObject good = goods.getJSONObject(h);
                         if (good.getBool("isAvailable") != null
                                 && good.getBool("isAvailable")
-                                && good.getStr("title").contains("套餐")
+                                && UserConfig.whitelist.stream().anyMatch(title -> good.getStr("title").contains(title))
                         ) {
                             Integer stockQuantity = good.getJSONObject("stockInfo").getInt("stockQuantity");
                             JSONArray priceInfoList = good.getJSONArray("priceInfo");
@@ -610,8 +620,8 @@ public class Api {
                                 goodDto.setSpuId(good.getStr("spuId"));
                                 goodDto.setQuantity("1");
                                 goodDto.setStoreId(good.getStr("storeId"));
+                                goodDto.setPrice(price);
                                 goodDtos.add(goodDto);
-                                amount = amount + price * Double.parseDouble(goodDto.getQuantity());
                                 System.out.println(good.getStr("title") + " 价格：" + price + "元 剩余库存：" + stockQuantity + "\n" + good.getStr("subTitle"));
                             } else {
                                 System.out.println(good.getStr("title") + " 价格：" + price + "元 剩余库存：" + stockQuantity);
@@ -625,7 +635,6 @@ public class Api {
                 return null;
             }
             print(true, "【成功】获取到保供套餐");
-            context.put("amount", amount);
             return goodDtos;
         } catch (Exception e) {
             e.printStackTrace();

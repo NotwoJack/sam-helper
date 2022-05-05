@@ -10,18 +10,18 @@ public class ApplicationTest {
 
     public static void main(String[] args) {
         //先初始化 获得必要的参数
-        Api.init(UserConfig.deliveryType);
+        Api.init("2");
         Map<String, Object> deliveryAddressDetail = Api.getDeliveryAddressDetail();
         Map<String, Object> storeDetail = Api.getMiniUnLoginStoreList(Double.parseDouble((String) Api.context.get("latitude")), Double.parseDouble((String) Api.context.get("longitude")));
         Map<String, Object> capacityData = Api.getCapacityData(storeDetail);
-        List<CouponDto> couponDtoList = Api.getCouponList();
-        List<GoodDto> cart = Api.getCart(storeDetail);
+//        List<CouponDto> couponDtoList = Api.getCouponList();
+//        List<GoodDto> cart = Api.getCart(storeDetail);
 //        Map<String, Object> map = new HashMap<>();
 //        map.put("startRealTime", "1651539600000");
 //        map.put("endRealTime", "1651545000000");
-        Api.commitPay(cart, capacityData, deliveryAddressDetail, storeDetail, couponDtoList);
+//        Api.commitPay(cart, capacityData, deliveryAddressDetail, storeDetail, couponDtoList);
 
-//        List<GoodDto> goodDtos = Api.getPageData(storeDetail);
+        List<GoodDto> goodDtos = Api.getPageData(storeDetail);
 //        List<GoodDto> goodDtos = new ArrayList<>();
 //        GoodDto goodDto = new GoodDto();
 //        goodDto.setQuantity("1");
