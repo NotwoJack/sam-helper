@@ -345,6 +345,10 @@ public class Api {
                     if (good.getBool("isSelected") && (Objects.equals(good.getInt("storeType"), storeDetail.get("storeType")))) {
                         GoodDto goodDto = new GoodDto();
                         goodDto.setSpuId(good.getStr("spuId"));
+                        List<GoodDto> limitedGood = (List<GoodDto>) context.get("limitedGood");
+                        if (limitedGood != null && limitedGood.contains(goodDto)){
+                            break;
+                        }
                         if (good.getInt("quantity") >= good.getInt("stockQuantity")) {
                             goodDto.setQuantity(good.getStr("stockQuantity"));
                         } else {
