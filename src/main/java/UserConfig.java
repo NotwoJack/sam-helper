@@ -1,4 +1,6 @@
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -14,6 +16,8 @@ public class UserConfig {
     public static final Integer targetAmount = 0;
     //是否使用优惠券
     public static final Boolean coupon = false;
+    //保供套餐名称白名单，可以自行编辑。例子("鲜食","食品")，名称中含有这些字段的套餐会被筛选出来
+    public static final List<String> whitelist = Arrays.asList("套餐");
     //bark通知id
     public static final String barkId = "";
     //Server酱 用户 Token，可选参数，获取方式：https://sct.ftqq.com/sendkey
