@@ -21,6 +21,8 @@ public class GoodDto {
 
     Double weight;
 
+    Double price;
+
     @Override
     public boolean equals(Object o){
         return o instanceof GoodDto && Objects.equals(this.spuId, ((GoodDto) o).spuId);
