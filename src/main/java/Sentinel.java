@@ -81,9 +81,9 @@ public class Sentinel {
                     totalWeight = totalWeight + goodDtos.get(j).getWeight() * Double.parseDouble(goodDtos.get(j).getQuantity());
                     List<GoodDto> orderGood = new ArrayList<>();
                     if (totalWeight > 30) {
-                        orderGood = goodDtos.subList(flag, j - 1);
-                    } else if (j == goodDtos.size() - 1) {
                         orderGood = goodDtos.subList(flag, j);
+                    } else if (j == goodDtos.size() - 1) {
+                        orderGood = goodDtos.subList(flag, j + 1);
                     }
                     if (!orderGood.isEmpty()) {
                         for (int i = 0; i < loopTryCount; i++) {
