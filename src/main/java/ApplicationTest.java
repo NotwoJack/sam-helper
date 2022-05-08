@@ -10,7 +10,7 @@ public class ApplicationTest {
 
     public static void main(String[] args) {
         //先初始化 获得必要的参数
-        Api.init("2");
+        Api.init("1");
         Map<String, Object> deliveryAddressDetail = Api.getDeliveryAddressDetail();
         Map<String, Object> storeDetail = Api.getMiniUnLoginStoreList(Double.parseDouble((String) Api.context.get("latitude")), Double.parseDouble((String) Api.context.get("longitude")));
         Map<String, Object> capacityData = Api.getCapacityData(storeDetail);
@@ -21,7 +21,7 @@ public class ApplicationTest {
 //        map.put("endRealTime", "1651545000000");
 //        Api.commitPay(cart, capacityData, deliveryAddressDetail, storeDetail, couponDtoList);
 
-        List<GoodDto> goodDtos = Api.getPageData(storeDetail);
+//        List<GoodDto> goodDtos = Api.getPageData(storeDetail);
 //        List<GoodDto> goodDtos = new ArrayList<>();
 //        GoodDto goodDto = new GoodDto();
 //        goodDto.setQuantity("1");

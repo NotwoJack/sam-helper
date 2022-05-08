@@ -10,11 +10,11 @@ public class UserConfig {
     @Deprecated
     public static final String deliveryType = "1";
     //下单目标金额
-    public static final Integer targetAmount = 500;
+    public static final Integer targetAmount = 300;
     //是否使用优惠券
-    public static final Boolean coupon = true;
+    public static final Boolean coupon = false;
     //保供套餐名称白名单，可以自行编辑。例子("鲜食","食品")，名称中含有这些字段的套餐会被筛选出来
-    public static final List<String> whitelist = Arrays.asList("套餐");
+    public static final List<String> whitelist = Arrays.asList("鲜食","食品");
     //bark通知id
     public static final String barkId = "wrkU4Qz9VHZuf7Pv7hco2S";
     //Server酱 用户 Token，可选参数，获取方式：https://sct.ftqq.com/sendkey
@@ -33,10 +33,9 @@ public class UserConfig {
         headers.put("Accept-Language", "zh-CN,zh;q=0.9");
         headers.put("User-Agent", "SamClub/5.0.45 (iPhone; iOS 15.4; Scale/3.00)");
         headers.put("device-type", "mini_program");
-        headers.put("auth-token", "740d926b981716f4a42ea734ed0c250a5c54c502a29294e5592d635eb97214d8");//自己 主卡
-//        headers.put("auth-token", "740d926b981716f47b1cb146b04a11ba9dfcdb914034d2fe74801c5441f73179");
-//        headers.put("auth-token", "740d926b981716f4ed02ced09db92ccec63cf4cbe3c3f2b023cfb7c5c1c4d8d9");//小弟
-//        headers.put("auth-token", "740d926b981716f4b051704c3a27202630da6b9729f4ed2c15a276abc7d7855c");//小弟副卡
+//        headers.put("auth-token", "740d926b981716f4a42ea734ed0c250a5c54c502a29294e5592d635eb97214d8");//1号主卡 自己 主卡
+//        headers.put("auth-token", "740d926b981716f4ed02ced09db92ccec63cf4cbe3c3f2b023cfb7c5c1c4d8d9");//2号主卡 小弟
+        headers.put("auth-token", "740d926b981716f4b051704c3a27202630da6b9729f4ed2c15a276abc7d7855c");//2号副卡 小弟副卡
         return headers;
     }
 
