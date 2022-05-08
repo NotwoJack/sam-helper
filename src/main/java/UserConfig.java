@@ -41,8 +41,8 @@ public class UserConfig {
 
     public static Map<String,Object> getIdInfo() {
         Map<String,Object> idInfo = new HashMap<>();
-        idInfo.put("uid", "181817321575");
-        idInfo.put("appId", "wxb344a8321eaaf849");
+        idInfo.put("uid", "181813333575");
+        idInfo.put("appId", "wxb344a45343eaaf849");
         idInfo.put("saasId", "1818");
         return idInfo;
     }

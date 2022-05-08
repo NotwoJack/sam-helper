@@ -224,13 +224,13 @@ public class Api {
             //对于只有一个时间段段配送直接预判处理
             if (capcityResponseList.size() == 1) {
                 JSONArray list = capcityResponseList.getJSONObject(0).getJSONArray("list");
-                if (list.size() == 1) {
+//                if (list.size() == 1) {
                     JSONObject time = list.getJSONObject(0);
                     map.put("startRealTime", time.get("startRealTime"));
                     map.put("endRealTime", time.get("endRealTime"));
                     print(true, "【成功】单一配送时间，预处理:" + capcityResponseList.getJSONObject(0).getStr("strDate") + " " + time.getStr("startTime") + " -- " + time.getStr("endTime"));
                     return map;
-                }
+//                }
             }
 
             for (int i = 0; i < capcityResponseList.size(); i++) {
@@ -242,7 +242,7 @@ public class Api {
                         if (!time.getBool("timeISFull")) {
                             map.put("startRealTime", time.get("startRealTime"));
                             map.put("endRealTime", time.get("endRealTime"));
-                            print(true, "【成功】更新配送时间:" + capcityResponse.getStr("strDate") + time.getStr("startTime") + " -- " + time.getStr("endTime"));
+                            print(true, "【成功】更新配送时间:" + capcityResponse.getStr("strDate") + " " + time.getStr("startTime") + " -- " + time.getStr("endTime"));
                             return map;
                         }
                     }
@@ -703,8 +703,8 @@ public class Api {
             for (int i = 0; i < couponList.size(); i++) {
                 if (couponList.getJSONObject(i).getInt("couponType") == 1) {
                     CouponDto couponDto = new CouponDto();
-                    couponDto.setCondition(Integer.valueOf(couponList.getJSONObject(i).getJSONObject("promotion").getJSONObject("condition").getStr("value")) / 100);
-                    couponDto.setDiscount(Integer.valueOf(couponList.getJSONObject(i).getJSONObject("promotion").getJSONObject("discount").getStr("value")) / 100);
+                    couponDto.setCondition(Integer.parseInt(couponList.getJSONObject(i).getJSONObject("promotion").getJSONObject("condition").getStr("value")) / 100);
+                    couponDto.setDiscount(Integer.parseInt(couponList.getJSONObject(i).getJSONObject("promotion").getJSONObject("discount").getStr("value")) / 100);
                     couponDto.setRuleId(couponList.getJSONObject(i).getStr("ruleId"));
                     couponDtoList.add(couponDto);
                 }
