@@ -1,5 +1,6 @@
 import cn.hutool.core.util.RandomUtil;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -28,34 +29,34 @@ public class Sentinel {
         //单轮轮询时请求异常（服务器高峰期限流策略）尝试次数
         int loopTryCount = 10;
 
-        Api.init("1");
+        //8点00分00秒时间触发 极速达
+        while (UserConfig.deliveryType.equals("1") && !Api.timeTrigger(8, 00, 00)) {
+        }
+        //13点59分00秒时间触发 全城送
+        while (UserConfig.deliveryType.equals("2") && !Api.timeTrigger(13, 59, 30)) {
+        }
+
+        Api.init(UserConfig.deliveryType);
         List<CouponDto> couponList = Api.getCouponList();
 
-        while (!Api.context.containsKey("end")) {
+        Map<String, Object> deliveryAddressDetail = null;
+        while (deliveryAddressDetail == null){
+            deliveryAddressDetail = Api.getDeliveryAddressDetail();
+            sleep(RandomUtil.randomInt(sleepMillisMin, sleepMillisMax));
+        }
+        Map<String, Object> storeDetail = null;
+        while (storeDetail == null){
+            storeDetail = Api.getMiniUnLoginStoreList(Double.parseDouble((String) Api.context.get("latitude")), Double.parseDouble((String) Api.context.get("longitude")));
+            sleep(RandomUtil.randomInt(sleepMillisMin, sleepMillisMax));
+        }
+
+        while (true) {
             try {
                 sleep(RandomUtil.randomInt(sleepMillisMin, sleepMillisMax));
 
-                for (int i = 0; i < loopTryCount && (Api.context.get("deliveryAddressDetail") == null); i++) {
-                    Map<String, Object> deliveryAddressDetail = Api.getDeliveryAddressDetail();
-                    sleep(RandomUtil.randomInt(sleepMillisMin, sleepMillisMax));
-                    Api.context.put("deliveryAddressDetail", deliveryAddressDetail);
-                }
-                if (Api.context.get("deliveryAddressDetail") == null) {
-                    continue;
-                }
-
-                for (int i = 0; i < loopTryCount && (Api.context.get("storeDetail") == null); i++) {
-                    Map<String, Object> storeDetail = Api.getMiniUnLoginStoreList(Double.parseDouble((String) Api.context.get("latitude")), Double.parseDouble((String) Api.context.get("longitude")));
-                    sleep(RandomUtil.randomInt(sleepMillisMin, sleepMillisMax));
-                    Api.context.put("storeDetail", storeDetail);
-                }
-                if (Api.context.get("storeDetail") == null) {
-                    continue;
-                }
-
                 List<GoodDto> goodDtos = null;
                 for (int i = 0; i < loopTryCount && goodDtos == null; i++) {
-                    goodDtos = Api.getCart((Map<String, Object>) Api.context.get("storeDetail"));
+                    goodDtos = Api.getCart(storeDetail);
                     sleep(RandomUtil.randomInt(sleepMillisMin, sleepMillisMax));
                 }
                 if (goodDtos == null) {
@@ -68,39 +69,51 @@ public class Sentinel {
 
                 Map<String, Object> capacityData = null;
                 for (int i = 0; i < loopTryCount && capacityData == null; i++) {
-                    capacityData = Api.getCapacityData((Map<String, Object>) Api.context.get("storeDetail"));
+                    capacityData = Api.getCapacityData(storeDetail);
                     sleep(RandomUtil.randomInt(sleepMillisMin, sleepMillisMax));
                 }
                 if (capacityData == null) {
                     continue;
                 }
 
-                Double totalWeight = 0.0;
-                Integer flag = 0;
-                for (int j = 0; j < goodDtos.size(); j++) {
-                    totalWeight = totalWeight + goodDtos.get(j).getWeight() * Double.parseDouble(goodDtos.get(j).getQuantity());
-                    List<GoodDto> orderGood = new ArrayList<>();
-                    if (totalWeight > 30) {
-                        orderGood = goodDtos.subList(flag, j);
-                    } else if (j == goodDtos.size() - 1) {
-                        orderGood = goodDtos.subList(flag, j + 1);
-                    }
-                    if (!orderGood.isEmpty()) {
-                        for (int i = 0; i < loopTryCount; i++) {
-                            if (Api.commitPay(orderGood, capacityData, (Map<String, Object>) Api.context.get("deliveryAddressDetail"), (Map<String, Object>) Api.context.get("storeDetail"), (List<CouponDto>) Api.context.get("couponDtoList"))) {
-                                Api.play("极速达，下单成功");
-                                break;
-                            }
-                            sleep(RandomUtil.randomInt(sleepMillisMin, sleepMillisMax));
+                //极速达超重 拆单处理
+                List<List<GoodDto>> orderGoodList = new ArrayList<>();
+                if ("1".equals(Api.context.get("deliveryType"))){
+                    Double totalWeight = 0.0;
+                    Integer flag = 0;
+                    for (int j = 0; j < goodDtos.size(); j++) {
+                        totalWeight = totalWeight + goodDtos.get(j).getWeight() * Double.parseDouble(goodDtos.get(j).getQuantity());
+                        List<GoodDto> orderGood = new ArrayList<>();
+                        if (totalWeight > 30) {
+                            orderGood = goodDtos.subList(flag, j);
+                        } else if (j == goodDtos.size() - 1) {
+                            orderGood = goodDtos.subList(flag, j + 1);
                         }
+                        orderGoodList.add(orderGood);
                         totalWeight = 0.0;
                         flag = j;
                     }
+                } else if ("2".equals(Api.context.get("deliveryType"))) {
+                    orderGoodList.add(goodDtos);
                 }
+
+                for (List<GoodDto> orderGood : orderGoodList) {
+                    for (int i = 0; i < loopTryCount; i++) {
+                        if (Api.commitPay(orderGood, capacityData, deliveryAddressDetail, storeDetail, (List<CouponDto>) Api.context.get("couponDtoList"))) {
+                            if ("1".equals(Api.context.get("deliveryType"))){
+                                Api.play("极速达，下单成功,下单金额：" + Api.context.get("amount"));
+                            } else if ("2".equals(Api.context.get("deliveryType"))) {
+                                Api.play("全城配，下单成功,下单金额：" + Api.context.get("amount"));
+                            }
+                            break;
+                        }
+                        sleep(RandomUtil.randomInt(sleepMillisMin, sleepMillisMax));
+                    }
+                }
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
     }
-
 }

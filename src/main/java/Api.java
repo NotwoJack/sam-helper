@@ -21,6 +21,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import static cn.hutool.core.thread.ThreadUtil.sleep;
+
 /**
  * 接口封装
  */
@@ -481,6 +483,7 @@ public class Api {
                 return false;
             }
             print(true, "【恭喜你】已成功下单 当前下单总金额：" + amount + "元");
+            context.put("amount",amount);
             List<GoodDto> limitedGood = (List<GoodDto>) context.get("limitedGood");
             limitedGood.addAll(goods.stream().filter(GoodDto::getIsLimited).collect(Collectors.toList()));
             context.put("limitedGood", limitedGood);
@@ -615,7 +618,7 @@ public class Api {
                                     price = priceInfo.getDouble("price") / 100;
                                 }
                             }
-                            if (stockQuantity > 0) {
+                            if (stockQuantity >= 0) {
                                 GoodDto goodDto = new GoodDto();
                                 goodDto.setSpuId(good.getStr("spuId"));
                                 goodDto.setQuantity("1");
@@ -718,5 +721,17 @@ public class Api {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public static boolean timeTrigger(int hour, int minute, int second) {
+        int currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
+        int currentMinute = Calendar.getInstance().get(Calendar.MINUTE);
+        int currentSecond = Calendar.getInstance().get(Calendar.SECOND);
+        if (currentHour >= hour){
+            return true;
+        }
+        System.out.println("时间触发 当前时间 " + currentHour + ":" + currentMinute + ":" + currentSecond + " 目标时间 " + hour + ":" + minute + ":" + second);
+        sleep(1000);
+        return false;
     }
 }

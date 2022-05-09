@@ -1,3 +1,4 @@
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -9,11 +10,12 @@ import java.util.Map;
 public class ApplicationTest {
 
     public static void main(String[] args) {
+//        System.out.println(LocalDateTime.now().format("HH:MM:SS"));
         //先初始化 获得必要的参数
-        Api.init("1");
-        Map<String, Object> deliveryAddressDetail = Api.getDeliveryAddressDetail();
-        Map<String, Object> storeDetail = Api.getMiniUnLoginStoreList(Double.parseDouble((String) Api.context.get("latitude")), Double.parseDouble((String) Api.context.get("longitude")));
-        Map<String, Object> capacityData = Api.getCapacityData(storeDetail);
+//        Api.init("1");
+//        Map<String, Object> deliveryAddressDetail = Api.getDeliveryAddressDetail();
+//        Map<String, Object> storeDetail = Api.getMiniUnLoginStoreList(Double.parseDouble((String) Api.context.get("latitude")), Double.parseDouble((String) Api.context.get("longitude")));
+//        Map<String, Object> capacityData = Api.getCapacityData(storeDetail);
 //        List<CouponDto> couponDtoList = Api.getCouponList();
 //        List<GoodDto> cart = Api.getCart(storeDetail);
 //        Map<String, Object> map = new HashMap<>();

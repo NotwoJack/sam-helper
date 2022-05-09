@@ -7,14 +7,13 @@ import java.util.*;
 public class UserConfig {
 
     //1：极速达 2：全城配送
-    @Deprecated
-    public static final String deliveryType = "1";
+    public static final String deliveryType = "2";
     //下单目标金额
     public static final Integer targetAmount = 300;
     //是否使用优惠券
     public static final Boolean coupon = false;
     //保供套餐名称白名单，可以自行编辑。例子("鲜食","食品")，名称中含有这些字段的套餐会被筛选出来
-    public static final List<String> whitelist = Arrays.asList("鲜食","食品");
+    public static final List<String> whitelist = Arrays.asList("鲜食");
     //bark通知id
     public static final String barkId = "wrkU4Qz9VHZuf7Pv7hco2S";
     //Server酱 用户 Token，可选参数，获取方式：https://sct.ftqq.com/sendkey
@@ -41,8 +40,8 @@ public class UserConfig {
 
     public static Map<String,Object> getIdInfo() {
         Map<String,Object> idInfo = new HashMap<>();
-        idInfo.put("uid", "181813333575");
-        idInfo.put("appId", "wxb344a45343eaaf849");
+        idInfo.put("uid", "181866663575");
+        idInfo.put("appId", "wxb344a66643eaaf849");
         idInfo.put("saasId", "1818");
         return idInfo;
     }
