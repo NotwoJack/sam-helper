@@ -7,7 +7,6 @@ import java.util.*;
 public class UserConfig {
 
     //1：极速达 2：全城配送
-    @Deprecated
     public static final String deliveryType = "1";
     //下单目标金额
     public static final Integer targetAmount = 0;
