@@ -16,10 +16,13 @@ import java.io.File;
 import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+
+import static cn.hutool.core.thread.ThreadUtil.sleep;
 
 /**
  * 接口封装
@@ -224,13 +227,13 @@ public class Api {
             //对于只有一个时间段段配送直接预判处理
             if (capcityResponseList.size() == 1) {
                 JSONArray list = capcityResponseList.getJSONObject(0).getJSONArray("list");
-                if (list.size() == 1) {
+//                if (list.size() == 1) {
                     JSONObject time = list.getJSONObject(0);
                     map.put("startRealTime", time.get("startRealTime"));
                     map.put("endRealTime", time.get("endRealTime"));
                     print(true, "【成功】单一配送时间，预处理:" + capcityResponseList.getJSONObject(0).getStr("strDate") + " " + time.getStr("startTime") + " -- " + time.getStr("endTime"));
                     return map;
-                }
+//                }
             }
 
             for (int i = 0; i < capcityResponseList.size(); i++) {
@@ -242,7 +245,7 @@ public class Api {
                         if (!time.getBool("timeISFull")) {
                             map.put("startRealTime", time.get("startRealTime"));
                             map.put("endRealTime", time.get("endRealTime"));
-                            print(true, "【成功】更新配送时间:" + capcityResponse.getStr("strDate") + time.getStr("startTime") + " -- " + time.getStr("endTime"));
+                            print(true, "【成功】更新配送时间:" + capcityResponse.getStr("strDate") + " " + time.getStr("startTime") + " -- " + time.getStr("endTime"));
                             return map;
                         }
                     }
@@ -469,6 +472,12 @@ public class Api {
                     amount = amount - coupon.getDiscount();
                 }
             }
+//            Map<String, String> couponMap = new HashMap<>();
+//            List<Map> couponList = new ArrayList<>();
+//            couponMap.put("promotionId", "");
+//            couponMap.put("storeId", "4807");
+//            couponList.add(couponMap);
+//            request.put("couponList", couponList);
 
             httpRequest.body(JSONUtil.toJsonStr(request));
             String body = httpRequest.execute().body();
@@ -481,6 +490,7 @@ public class Api {
                 return false;
             }
             print(true, "【恭喜你】已成功下单 当前下单总金额：" + amount + "元");
+            context.put("amount",amount);
             List<GoodDto> limitedGood = (List<GoodDto>) context.get("limitedGood");
             limitedGood.addAll(goods.stream().filter(GoodDto::getIsLimited).collect(Collectors.toList()));
             context.put("limitedGood", limitedGood);
@@ -703,8 +713,8 @@ public class Api {
             for (int i = 0; i < couponList.size(); i++) {
                 if (couponList.getJSONObject(i).getInt("couponType") == 1) {
                     CouponDto couponDto = new CouponDto();
-                    couponDto.setCondition(Integer.valueOf(couponList.getJSONObject(i).getJSONObject("promotion").getJSONObject("condition").getStr("value")) / 100);
-                    couponDto.setDiscount(Integer.valueOf(couponList.getJSONObject(i).getJSONObject("promotion").getJSONObject("discount").getStr("value")) / 100);
+                    couponDto.setCondition(Integer.parseInt(couponList.getJSONObject(i).getJSONObject("promotion").getJSONObject("condition").getStr("value")) / 100);
+                    couponDto.setDiscount(Integer.parseInt(couponList.getJSONObject(i).getJSONObject("promotion").getJSONObject("discount").getStr("value")) / 100);
                     couponDto.setRuleId(couponList.getJSONObject(i).getStr("ruleId"));
                     couponDtoList.add(couponDto);
                 }
@@ -718,5 +728,18 @@ public class Api {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public static boolean timeTrigger(String time) {
+        String timeColonPattern = "HH:mm:ss";
+        DateTimeFormatter timeColonFormatter = DateTimeFormatter.ofPattern(timeColonPattern);
+        LocalTime parse = LocalTime.parse(time,timeColonFormatter);
+        LocalTime now = LocalTime.now();
+        if (now.isAfter(parse)){
+            return true;
+        }
+        System.out.println("时间触发 当前时间 " + now.format(timeColonFormatter) + " 目标时间 " + time);
+        sleep(1000);
+        return false;
     }
 }
