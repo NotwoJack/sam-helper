@@ -471,6 +471,12 @@ public class Api {
                     amount = amount - coupon.getDiscount();
                 }
             }
+//            Map<String, String> couponMap = new HashMap<>();
+//            List<Map> couponList = new ArrayList<>();
+//            couponMap.put("promotionId", "");
+//            couponMap.put("storeId", "4807");
+//            couponList.add(couponMap);
+//            request.put("couponList", couponList);
 
             httpRequest.body(JSONUtil.toJsonStr(request));
             String body = httpRequest.execute().body();

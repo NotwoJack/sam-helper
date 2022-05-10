@@ -83,15 +83,16 @@ public class Sentinel {
                     Integer flag = 0;
                     for (int j = 0; j < goodDtos.size(); j++) {
                         totalWeight = totalWeight + goodDtos.get(j).getWeight() * Double.parseDouble(goodDtos.get(j).getQuantity());
-                        List<GoodDto> orderGood = new ArrayList<>();
+                        List<GoodDto> orderGood;
                         if (totalWeight > 30) {
                             orderGood = goodDtos.subList(flag, j);
+                            orderGoodList.add(orderGood);
+                            totalWeight = 0.0;
+                            flag = j;
                         } else if (j == goodDtos.size() - 1) {
                             orderGood = goodDtos.subList(flag, j + 1);
+                            orderGoodList.add(orderGood);
                         }
-                        orderGoodList.add(orderGood);
-                        totalWeight = 0.0;
-                        flag = j;
                     }
                 } else if ("2".equals(Api.context.get("deliveryType"))) {
                     orderGoodList.add(goodDtos);
