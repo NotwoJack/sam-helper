@@ -1,4 +1,9 @@
+import cn.hutool.core.date.LocalDateTimeUtil;
+
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -10,7 +15,6 @@ import java.util.Map;
 public class ApplicationTest {
 
     public static void main(String[] args) {
-//        System.out.println(LocalDateTime.now().format("HH:MM:SS"));
         //先初始化 获得必要的参数
 //        Api.init("1");
 //        Map<String, Object> deliveryAddressDetail = Api.getDeliveryAddressDetail();

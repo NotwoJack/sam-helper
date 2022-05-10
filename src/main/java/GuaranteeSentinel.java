@@ -25,7 +25,7 @@ public class GuaranteeSentinel {
         int loopTryCount = 10;
 
         //11点20分00秒时间触发 保供套餐
-        while (!Api.timeTrigger(11, 20, 00)) {
+        while (!Api.timeTrigger("11:20:00")) {
         }
 
         Api.init("2");

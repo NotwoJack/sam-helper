@@ -16,6 +16,7 @@ import java.io.File;
 import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -624,7 +625,7 @@ public class Api {
                                     price = priceInfo.getDouble("price") / 100;
                                 }
                             }
-                            if (stockQuantity >= 0) {
+                            if (stockQuantity > 0) {
                                 GoodDto goodDto = new GoodDto();
                                 goodDto.setSpuId(good.getStr("spuId"));
                                 goodDto.setQuantity("1");
@@ -729,14 +730,15 @@ public class Api {
         return null;
     }
 
-    public static boolean timeTrigger(int hour, int minute, int second) {
-        int currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
-        int currentMinute = Calendar.getInstance().get(Calendar.MINUTE);
-        int currentSecond = Calendar.getInstance().get(Calendar.SECOND);
-        if (currentHour >= hour){
+    public static boolean timeTrigger(String time) {
+        String timeColonPattern = "HH:mm:ss";
+        DateTimeFormatter timeColonFormatter = DateTimeFormatter.ofPattern(timeColonPattern);
+        LocalTime parse = LocalTime.parse(time,timeColonFormatter);
+        LocalTime now = LocalTime.now();
+        if (now.isAfter(parse)){
             return true;
         }
-        System.out.println("时间触发 当前时间 " + currentHour + ":" + currentMinute + ":" + currentSecond + " 目标时间 " + hour + ":" + minute + ":" + second);
+        System.out.println("时间触发 当前时间 " + now.format(timeColonFormatter) + " 目标时间 " + time);
         sleep(1000);
         return false;
     }

@@ -29,11 +29,11 @@ public class Sentinel {
         //单轮轮询时请求异常（服务器高峰期限流策略）尝试次数
         int loopTryCount = 10;
 
-        //7点55分00秒时间触发 极速达
-        while (UserConfig.deliveryType.equals("1") && !Api.timeTrigger(7, 55, 00)) {
+        //7点58分00秒时间触发 极速达
+        while (UserConfig.deliveryType.equals("1") && !Api.timeTrigger("7:58:00")) {
         }
         //13点59分00秒时间触发 全城送
-        while (UserConfig.deliveryType.equals("2") && !Api.timeTrigger(13, 59, 30)) {
+        while (UserConfig.deliveryType.equals("2") && !Api.timeTrigger("13:59:00")) {
         }
 
         Api.init(UserConfig.deliveryType);
