@@ -34,7 +34,7 @@ public class Application {
         //先初始化 获得必要的参数
         Api.init(UserConfig.deliveryType);
         Map<String, Object> deliveryAddressDetail = Api.getDeliveryAddressDetail();
-        Map<String, Object> storeDetail = Api.getMiniUnLoginStoreList(Double.parseDouble((String) deliveryAddressDetail.get("latitude")), Double.parseDouble((String) deliveryAddressDetail.get("longitude")));
+        Map<String, Object> storeDetail = Api.getMiniUnLoginStoreList(Double.parseDouble((String) Api.context.get("latitude")), Double.parseDouble((String) Api.context.get("longitude")));
         List<CouponDto> couponList = Api.getCouponList();
 
         for (int i = 0; i < baseTheadSize; i++) {
