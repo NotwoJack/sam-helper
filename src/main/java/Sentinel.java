@@ -30,10 +30,10 @@ public class Sentinel {
         int loopTryCount = 10;
 
         //7点58分00秒时间触发 极速达
-        while (UserConfig.deliveryType.equals("1") && !Api.timeTrigger("7:58:00")) {
+        while ("1".equals(UserConfig.deliveryType) && !Api.timeTrigger("07:58:00")) {
         }
         //13点59分00秒时间触发 全城送
-        while (UserConfig.deliveryType.equals("2") && !Api.timeTrigger("13:59:00")) {
+        while ("2".equals(UserConfig.deliveryType) && !Api.timeTrigger("13:59:00")) {
         }
 
         Api.init(UserConfig.deliveryType);
