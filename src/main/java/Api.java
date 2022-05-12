@@ -618,7 +618,7 @@ public class Api {
                                     price = priceInfo.getDouble("price") / 100;
                                 }
                             }
-                            if (stockQuantity >= 0) {
+                            if (stockQuantity > 0) {
                                 GoodDto goodDto = new GoodDto();
                                 goodDto.setSpuId(good.getStr("spuId"));
                                 goodDto.setQuantity("1");
