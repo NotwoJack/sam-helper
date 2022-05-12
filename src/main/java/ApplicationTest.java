@@ -16,6 +16,7 @@ public class ApplicationTest {
 
     public static void main(String[] args) {
         //先初始化 获得必要的参数
+        Api.getAddress();
 //        Api.init("1");
 //        Map<String, Object> deliveryAddressDetail = Api.getDeliveryAddressDetail();
 //        Map<String, Object> storeDetail = Api.getMiniUnLoginStoreList(Double.parseDouble((String) Api.context.get("latitude")), Double.parseDouble((String) Api.context.get("longitude")));

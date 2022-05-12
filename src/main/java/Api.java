@@ -9,6 +9,7 @@ import cn.hutool.json.JSONException;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import lombok.SneakyThrows;
+import org.checkerframework.checker.units.qual.A;
 
 import java.applet.Applet;
 import java.applet.AudioClip;
@@ -228,11 +229,11 @@ public class Api {
             if (capcityResponseList.size() == 1) {
                 JSONArray list = capcityResponseList.getJSONObject(0).getJSONArray("list");
 //                if (list.size() == 1) {
-                    JSONObject time = list.getJSONObject(0);
-                    map.put("startRealTime", time.get("startRealTime"));
-                    map.put("endRealTime", time.get("endRealTime"));
-                    print(true, "【成功】单一配送时间，预处理:" + capcityResponseList.getJSONObject(0).getStr("strDate") + " " + time.getStr("startTime") + " -- " + time.getStr("endTime"));
-                    return map;
+                JSONObject time = list.getJSONObject(0);
+                map.put("startRealTime", time.get("startRealTime"));
+                map.put("endRealTime", time.get("endRealTime"));
+                print(true, "【成功】单一配送时间，预处理:" + capcityResponseList.getJSONObject(0).getStr("strDate") + " " + time.getStr("startTime") + " -- " + time.getStr("endTime"));
+                return map;
 //                }
             }
 
@@ -484,7 +485,7 @@ public class Api {
                 return false;
             }
             print(true, "【恭喜你】已成功下单 当前下单总金额：" + amount + "元");
-            context.put("amount",amount);
+            context.put("amount", amount);
             List<GoodDto> limitedGood = (List<GoodDto>) context.get("limitedGood");
             limitedGood.addAll(goods.stream().filter(GoodDto::getIsLimited).collect(Collectors.toList()));
             context.put("limitedGood", limitedGood);
@@ -727,13 +728,52 @@ public class Api {
     public static boolean timeTrigger(String time) {
         String timeColonPattern = "HH:mm:ss";
         DateTimeFormatter timeColonFormatter = DateTimeFormatter.ofPattern(timeColonPattern);
-        LocalTime parse = LocalTime.parse(time,timeColonFormatter);
+        LocalTime parse = LocalTime.parse(time, timeColonFormatter);
         LocalTime now = LocalTime.now();
-        if (now.isAfter(parse)){
+        if (now.isAfter(parse)) {
             return true;
         }
         System.out.println("时间触发 当前时间 " + now.format(timeColonFormatter) + " 目标时间 " + time);
         sleep(1000);
         return false;
     }
+
+    public static List<AddressDto> getAddress() {
+        try {
+            HttpRequest httpRequest = HttpUtil.createGet("https://api-sams.walmartmobile.cn/api/v1/sams/sams-user/receiver_address/address_list");
+            httpRequest.addHeaders(UserConfig.getHeaders());
+            httpRequest.form(UserConfig.getIdInfo());
+
+            String body = httpRequest.execute().body();
+            JSONObject object = JSONUtil.parseObj(body);
+            if (!isSuccess(object, "获取收货地址列表")) {
+                return null;
+            }
+            JSONArray addressList = object.getJSONObject("data").getJSONArray("addressList");
+            List<AddressDto> addressDtoList = new ArrayList<>();
+            for (int i = 0; i < addressList.size(); i++) {
+                JSONObject address = addressList.getJSONObject(i);
+                System.out.println(
+                        "序号：" + i
+                                + " 收货地址：" + address.getStr("cityName") + address.getStr("districtName") + address.getStr("receiverAddress")
+                                + " 收货人：" + address.getStr("name") + " 手机号：" + address.getStr("mobile"));
+                AddressDto addressDto = new AddressDto();
+                addressDto.setAddressId(address.getStr("addressId"));
+                addressDto.setLatitude(address.getStr("latitude"));
+                addressDto.setLongitude(address.getStr("longitude"));
+                addressDtoList.add(addressDto);
+            }
+            if (!addressList.isEmpty()) {
+                print(true, "【成功】获取收货地址，共计" + addressList.size() + "个");
+                return addressDtoList;
+            } else {
+                return null;
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
 }
