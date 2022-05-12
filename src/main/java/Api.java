@@ -84,9 +84,6 @@ public class Api {
     }
 
     public static void print(boolean normal, String message) {
-        if (Api.context.containsKey("end")) {
-            return;
-        }
         String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
         if (normal) {
             System.out.println(time + message);
@@ -121,6 +118,7 @@ public class Api {
      *
      * @return 地址信息Map
      */
+    @Deprecated
     public static Map<String, Object> getDeliveryAddressDetail() {
         try {
             HttpRequest httpRequest = HttpUtil.createPost("https://api-sams.walmartmobile.cn/api/v1/sams/trade/cart/getDeliveryAddressDetail");
@@ -403,11 +401,11 @@ public class Api {
      *
      * @param goods                 商品信息
      * @param capacityData          配送信息
-     * @param deliveryAddressDetail 配送地址信息
+     * @param addressDto            配送地址信息
      * @param storeDetail           商店信息
      * @return 下单成功与否
      */
-    public static Boolean commitPay(List<GoodDto> goods, Map<String, Object> capacityData, Map<String, Object> deliveryAddressDetail, Map<String, Object> storeDetail, List<CouponDto> couponDtoList) {
+    public static Boolean commitPay(List<GoodDto> goods, Map<String, Object> capacityData, AddressDto addressDto, Map<String, Object> storeDetail, List<CouponDto> couponDtoList) {
         try {
             HttpRequest httpRequest = HttpUtil.createPost("https://api-sams.walmartmobile.cn/api/v1/sams/trade/settlement/commitPay");
 
@@ -429,7 +427,7 @@ public class Api {
             request.put("shortageId", 1);
             request.put("orderType", 0);
             request.put("remark", "");
-            request.put("addressId", deliveryAddressDetail.get("addressId"));
+            request.put("addressId", addressDto.getAddressId());
             request.put("shortageDesc", "其他商品继续配送（缺货商品直接退款）");
             request.put("labelList", "[{\"attachId\":\"1649949934151-1a291f41-999c-4859-8f7e-f64516ac292f\",\"createTime\":1649949934287,\"labelType\":\"tracking_id\"},{\"attachId\":1074,\"createTime\":1649949934289,\"labelType\":\"scene_xcx\"}]");
             request.put("payMethodId", "contract");
@@ -583,8 +581,8 @@ public class Api {
 
             request.put("pageContentId", "1187641882302384150");
             request.put("authorize", true);
-            request.put("latitude", context.get("latitude"));
-            request.put("longitude", context.get("longitude"));
+//            request.put("latitude", Double.parseDouble(addressDto.getLatitude()));
+//            request.put("longitude", Double.parseDouble(addressDto.getLongitude()));
             request.put("storeInfoList", Arrays.asList(storeDetail));
 
             httpRequest.body(JSONUtil.toJsonStr(request));

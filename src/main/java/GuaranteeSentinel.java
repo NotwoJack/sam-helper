@@ -17,9 +17,9 @@ public class GuaranteeSentinel {
     public static void main(String[] args) {
 
         //执行任务请求间隔时间最小值
-        int sleepMillisMin = 1000;
+        int sleepMillisMin = 500;
         //执行任务请求间隔时间最大值
-        int sleepMillisMax = 1500;
+        int sleepMillisMax = 1000;
 
         //单轮轮询时请求异常（服务器高峰期限流策略）尝试次数
         int loopTryCount = 10;
@@ -31,14 +31,20 @@ public class GuaranteeSentinel {
         Api.init("2");
         List<CouponDto> couponList = Api.getCouponList();
 
-        Map<String, Object> deliveryAddressDetail = null;
-        while (deliveryAddressDetail == null){
-            deliveryAddressDetail = Api.getDeliveryAddressDetail();
+        AddressDto addressDto = null;
+        while (addressDto == null){
+            List<AddressDto> addressDtoList = Api.getAddress();
+            if (addressDtoList != null){
+                System.out.println("请输入收货地址序号，并回车");
+                Scanner scanner = new Scanner(System.in);
+                addressDto = addressDtoList.get(scanner.nextInt());
+            }
             sleep(RandomUtil.randomInt(sleepMillisMin, sleepMillisMax));
         }
+
         Map<String, Object> storeDetail = null;
         while (storeDetail == null){
-            storeDetail = Api.getMiniUnLoginStoreList(Double.parseDouble((String) Api.context.get("latitude")), Double.parseDouble((String) Api.context.get("longitude")));
+            storeDetail = Api.getMiniUnLoginStoreList(Double.parseDouble(addressDto.getLatitude()), Double.parseDouble(addressDto.getLongitude()));
             sleep(RandomUtil.randomInt(sleepMillisMin, sleepMillisMax));
         }
         Map<String, Object> capacityData = null;
@@ -78,7 +84,7 @@ public class GuaranteeSentinel {
 
                 for (GoodDto goodDto : goodDtos){
                     for (int i = 0; i < loopTryCount; i++) {
-                        if (Api.commitPay(Arrays.asList(goodDto), capacityData, deliveryAddressDetail, storeDetail, (List<CouponDto>) Api.context.get("couponDtoList"))) {
+                        if (Api.commitPay(Arrays.asList(goodDto), capacityData, addressDto, storeDetail, (List<CouponDto>) Api.context.get("couponDtoList"))) {
                             Api.play("保供套餐，下单成功，下单金额：" + Api.context.get("amount"));
                             saveGoodList.add(goodDto);
                             break;

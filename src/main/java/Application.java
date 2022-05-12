@@ -1,6 +1,9 @@
+import cn.hutool.core.util.RandomUtil;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 
 /**
  * 高峰抢单主程序
@@ -33,9 +36,19 @@ public class Application {
 
         //先初始化 获得必要的参数
         Api.init(UserConfig.deliveryType);
+        AddressDto addressDto = null;
+        while (addressDto == null){
+            List<AddressDto> addressDtoList = Api.getAddress();
+            if (addressDtoList != null){
+                System.out.println("请输入收货地址序号，并回车");
+                Scanner scanner = new Scanner(System.in);
+                addressDto = addressDtoList.get(scanner.nextInt());
+            }
+        }
         Map<String, Object> deliveryAddressDetail = Api.getDeliveryAddressDetail();
         Map<String, Object> storeDetail = Api.getMiniUnLoginStoreList(Double.parseDouble((String) Api.context.get("latitude")), Double.parseDouble((String) Api.context.get("longitude")));
         List<CouponDto> couponList = Api.getCouponList();
+
 
         for (int i = 0; i < baseTheadSize; i++) {
             new Thread(() -> {
@@ -64,13 +77,14 @@ public class Application {
         }
 
         for (int i = 0; i < submitOrderTheadSize; i++) {
+            AddressDto finalAddressDto = addressDto;
             new Thread(() -> {
                 while (!Api.context.containsKey("end")) {
                     if (Api.context.get("goods") == null || Api.context.get("time") == null) {
                         sleep(sleepMillis);
                         continue;
                     }
-                    if (Api.commitPay((List<GoodDto>) Api.context.get("goods"), (Map<String, Object>) Api.context.get("time"), deliveryAddressDetail, storeDetail,couponList)){
+                    if (Api.commitPay((List<GoodDto>) Api.context.get("goods"), (Map<String, Object>) Api.context.get("time"), finalAddressDto, storeDetail,couponList)){
                         System.out.println("铃声持续1分钟，终止程序即可，如果还需要下单再继续运行程序");
                         Api.context.put("end", new HashMap<>());
                         Api.play("下单成功");

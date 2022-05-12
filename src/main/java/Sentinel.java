@@ -1,10 +1,7 @@
 import cn.hutool.core.util.RandomUtil;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 哨兵捡漏模式 可长时间运行。
@@ -37,16 +34,26 @@ public class Sentinel {
         }
 
         Api.init(UserConfig.deliveryType);
-        List<CouponDto> couponList = Api.getCouponList();
-
-        Map<String, Object> deliveryAddressDetail = null;
-        while (deliveryAddressDetail == null){
-            deliveryAddressDetail = Api.getDeliveryAddressDetail();
+        AddressDto addressDto = null;
+        while (addressDto == null){
+            List<AddressDto> addressDtoList = Api.getAddress();
+            if (addressDtoList != null){
+                System.out.println("请输入收货地址序号，并回车");
+                Scanner scanner = new Scanner(System.in);
+                addressDto = addressDtoList.get(scanner.nextInt());
+            }
             sleep(RandomUtil.randomInt(sleepMillisMin, sleepMillisMax));
         }
+
+        List<CouponDto> couponList = Api.getCouponList();
+//        while (couponList == null){
+//            couponList = Api.getCouponList();
+//            sleep(RandomUtil.randomInt(sleepMillisMin, sleepMillisMax));
+//        }
+
         Map<String, Object> storeDetail = null;
         while (storeDetail == null){
-            storeDetail = Api.getMiniUnLoginStoreList(Double.parseDouble((String) Api.context.get("latitude")), Double.parseDouble((String) Api.context.get("longitude")));
+            storeDetail = Api.getMiniUnLoginStoreList(Double.parseDouble(addressDto.getLatitude()), Double.parseDouble(addressDto.getLongitude()));
             sleep(RandomUtil.randomInt(sleepMillisMin, sleepMillisMax));
         }
 
@@ -100,7 +107,7 @@ public class Sentinel {
 
                 for (List<GoodDto> orderGood : orderGoodList) {
                     for (int i = 0; i < loopTryCount; i++) {
-                        if (Api.commitPay(orderGood, capacityData, deliveryAddressDetail, storeDetail, (List<CouponDto>) Api.context.get("couponDtoList"))) {
+                        if (Api.commitPay(orderGood, capacityData, addressDto, storeDetail, (List<CouponDto>) Api.context.get("couponDtoList"))) {
                             if ("1".equals(Api.context.get("deliveryType"))){
                                 Api.play("极速达，下单成功,下单金额：" + Api.context.get("amount"));
                             } else if ("2".equals(Api.context.get("deliveryType"))) {

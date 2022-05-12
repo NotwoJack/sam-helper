@@ -4,10 +4,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 测试程序
@@ -16,8 +13,7 @@ public class ApplicationTest {
 
     public static void main(String[] args) {
         //先初始化 获得必要的参数
-        Api.getAddress();
-//        Api.init("1");
+        //        Api.init("1");
 //        Map<String, Object> deliveryAddressDetail = Api.getDeliveryAddressDetail();
 //        Map<String, Object> storeDetail = Api.getMiniUnLoginStoreList(Double.parseDouble((String) Api.context.get("latitude")), Double.parseDouble((String) Api.context.get("longitude")));
 //        Map<String, Object> capacityData = Api.getCapacityData(storeDetail);
