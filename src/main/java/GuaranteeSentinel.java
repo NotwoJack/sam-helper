@@ -32,9 +32,9 @@ public class GuaranteeSentinel {
         List<CouponDto> couponList = Api.getCouponList();
 
         AddressDto addressDto = null;
-        while (addressDto == null){
+        while (addressDto == null) {
             List<AddressDto> addressDtoList = Api.getAddress();
-            if (addressDtoList != null){
+            if (addressDtoList != null) {
                 System.out.println("请输入收货地址序号，并回车");
                 Scanner scanner = new Scanner(System.in);
                 addressDto = addressDtoList.get(scanner.nextInt());
@@ -43,12 +43,12 @@ public class GuaranteeSentinel {
         }
 
         Map<String, Object> storeDetail = null;
-        while (storeDetail == null){
+        while (storeDetail == null) {
             storeDetail = Api.getMiniUnLoginStoreList(Double.parseDouble(addressDto.getLatitude()), Double.parseDouble(addressDto.getLongitude()));
             sleep(RandomUtil.randomInt(sleepMillisMin, sleepMillisMax));
         }
         Map<String, Object> capacityData = null;
-        while (capacityData == null){
+        while (capacityData == null) {
             capacityData = Api.getCapacityData(storeDetail);
             sleep(RandomUtil.randomInt(sleepMillisMin, sleepMillisMax));
         }
@@ -82,12 +82,12 @@ public class GuaranteeSentinel {
                     continue;
                 }
 
-                for (GoodDto goodDto : goodDtos){
-                    for (int i = 0; i < loopTryCount; i++) {
+                for (int i = 0; i < loopTryCount; i++) {
+                    for (GoodDto goodDto : goodDtos) {
                         if (Api.commitPay(Arrays.asList(goodDto), capacityData, addressDto, storeDetail, (List<CouponDto>) Api.context.get("couponDtoList"))) {
                             Api.play("保供套餐，下单成功，下单金额：" + Api.context.get("amount"));
                             saveGoodList.add(goodDto);
-                            break;
+                            goodDtos.remove(goodDto);
                         }
                         sleep(RandomUtil.randomInt(sleepMillisMin, sleepMillisMax));
                     }
