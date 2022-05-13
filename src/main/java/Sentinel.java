@@ -46,10 +46,6 @@ public class Sentinel {
         }
 
         List<CouponDto> couponList = Api.getCouponList();
-//        while (couponList == null){
-//            couponList = Api.getCouponList();
-//            sleep(RandomUtil.randomInt(sleepMillisMin, sleepMillisMax));
-//        }
 
         Map<String, Object> storeDetail = null;
         while (storeDetail == null){
