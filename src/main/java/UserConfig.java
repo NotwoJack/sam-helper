@@ -33,7 +33,9 @@ public class UserConfig {
 //        headers.put("auth-token", "740d926b981716f4ed02ced09db92ccec63cf4cbe3c3f2b023cfb7c5c1c4d8d9");//2号主卡 小弟
 //        headers.put("auth-token", "740d926b981716f4b051704c3a27202630da6b9729f4ed2c15a276abc7d7855c");//2号副卡 小弟副卡
 //        headers.put("auth-token", "740d926b981716f4c16302eff370ddfa4a811619fce85bd26b65280e8e651e48");//3号主卡 zfl
-        headers.put("auth-token", "740d926b981716f4d7e02e601272a2c9a9bf9b11d79a6bcb40b3c39f92aa20936");//3号副卡 zp
+//        headers.put("auth-token", "740d926b981716f4d7e02e601272a2c9a9bf9b11d79a6bcb40b3c39f92aa20936");//3号副卡 zp
+//        headers.put("auth-token", "740d926b981716f4b728beded2a85c055f0a3e7b44bb53d1c0897dbbe9f00581");//4号主卡 ysh
+        headers.put("auth-token", "740d926b981716f4ec756cf323e99e72b006365536ebe3c2a34ade54f8962b82");//5号主卡 taozi
         return headers;
     }
 
