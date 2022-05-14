@@ -12,11 +12,11 @@ https://github.com/robGoods/sams
 抢单不易，请勿用于商业牟利。
 
 # 使用说明
-普通捡漏（Sentinel）：提前将商品加入购物车，程序检测是否达到目标金额，自动选择最近配送时间并下单。
+哨兵捡漏（Sentinel）：设置好需要抢购的模式，提前将商品加入购物车，程序检测是否达到目标金额，自动选择最近配送时间并下单。
 
 限购商品，提交数量不超过限购值，极速达超重商品自动拆分下单。
 
-保供套餐捡漏（GuaranteeSentinel）：自动检测保供套餐是否上架，自动将上架的保供套餐加入购物车并下单。已经下单过的套餐不会重复下单。
+~~保供套餐捡漏（GuaranteeSentinel）：自动检测保供套餐是否上架，自动将上架的保供套餐加入购物车并下单。已经下单过的套餐不会重复下单。~~
 
 程序端：根据抓包数据，填写UserConfig文件中的变量，运行测试（AplicationTest）查看能否正确获得购物车信息。
 
@@ -33,6 +33,10 @@ https://github.com/robGoods/sams
 Mac 微信小程序 浦东 全城送 微信支付
 
 # 更新记录
+## 2022.05.14
+1. 将保供套餐捡漏模式整合进哨兵主程序（在UserConfig中的deliveryType设置为3）
+2. 添加收货地址选择功能
+3. 优化优惠卷功能
 
 ## 2022.05.10
 1. 恢复哨兵模式下的全城送捡漏模式
@@ -77,4 +81,3 @@ Mac 微信小程序 浦东 全城送 微信支付
 山姆接口参考至 https://github.com/azhan1998/sam_buy
 
 # 交流群组
-![qrcode](https://github.com/NotwoJack/sam-helper/blob/main/image/qrcode.png)

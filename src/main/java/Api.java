@@ -1,7 +1,5 @@
 import cn.hutool.core.date.DateField;
 import cn.hutool.core.date.DateTime;
-import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONArray;
@@ -9,7 +7,6 @@ import cn.hutool.json.JSONException;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import lombok.SneakyThrows;
-import org.checkerframework.checker.units.qual.A;
 
 import java.applet.Applet;
 import java.applet.AudioClip;
@@ -20,7 +17,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import static cn.hutool.core.thread.ThreadUtil.sleep;
@@ -31,6 +27,7 @@ import static cn.hutool.core.thread.ThreadUtil.sleep;
 public class Api {
 
     public static final Map<String, Object> context = new HashMap<>();
+    public static final List<GoodDto> limitGood = new ArrayList<>();
 
     /**
      * 获取用户初始化信息，收货地址信息和匹配商店信息。为app上设定的默认值
@@ -44,6 +41,10 @@ public class Api {
                 context.put("cartDeliveryType", "1");
                 context.put("storeType", 4);
             } else if ("2".equals(deliveryType)) {
+                context.put("deliveryType", "2");
+                context.put("cartDeliveryType", "2");
+                context.put("storeType", 2);
+            } else if ("3".equals(deliveryType)) {
                 context.put("deliveryType", "2");
                 context.put("cartDeliveryType", "2");
                 context.put("storeType", 2);
@@ -399,10 +400,10 @@ public class Api {
     /**
      * 提交订单
      *
-     * @param goods                 商品信息
-     * @param capacityData          配送信息
-     * @param addressDto            配送地址信息
-     * @param storeDetail           商店信息
+     * @param goods        商品信息
+     * @param capacityData 配送信息
+     * @param addressDto   配送地址信息
+     * @param storeDetail  商店信息
      * @return 下单成功与否
      */
     public static Boolean commitPay(List<GoodDto> goods, Map<String, Object> capacityData, AddressDto addressDto, Map<String, Object> storeDetail, List<CouponDto> couponDtoList) {
@@ -454,24 +455,16 @@ public class Api {
             for (GoodDto good : goods) {
                 amount = amount + good.getPrice() * Integer.parseInt(good.getQuantity());
             }
-            CouponDto coupon = null;
-            if (UserConfig.coupon && couponDtoList != null) {
-                Double finalAmount = amount;
-                Optional<CouponDto> optionalCouponDto = couponDtoList.stream()
-                        .filter(couponDto -> couponDto.getCondition() < finalAmount)
-                        .max(Comparator.comparing(CouponDto::getDiscount));
-                if (optionalCouponDto.isPresent()) {
-                    coupon = optionalCouponDto.get();
+            List<Map> couponList = new ArrayList<>();
+            if (UserConfig.coupon && !couponDtoList.isEmpty()) {
+                couponDtoList.forEach(couponDto -> {
                     Map<String, String> couponMap = new HashMap<>();
-                    List<Map> couponList = new ArrayList<>();
-                    couponMap.put("promotionId", coupon.getRuleId());
+                    couponMap.put("promotionId", couponDto.getRuleId());
                     couponMap.put("storeId", (String) storeDetail.get("storeId"));
                     couponList.add(couponMap);
-                    request.put("couponList", couponList);
-                    amount = amount - coupon.getDiscount();
-                }
+                });
             }
-
+            request.put("couponList", couponList);
             httpRequest.body(JSONUtil.toJsonStr(request));
             String body = httpRequest.execute().body();
             if (body == null || body.isEmpty()) {
@@ -484,14 +477,7 @@ public class Api {
             }
             print(true, "【恭喜你】已成功下单 当前下单总金额：" + amount + "元");
             context.put("amount", amount);
-            List<GoodDto> limitedGood = (List<GoodDto>) context.get("limitedGood");
-            limitedGood.addAll(goods.stream().filter(GoodDto::getIsLimited).collect(Collectors.toList()));
-            context.put("limitedGood", limitedGood);
-            if (coupon != null) {
-                print(true, "【成功】使用优惠卷，满" + coupon.getCondition() + "减" + coupon.getDiscount());
-                couponDtoList.remove(coupon);
-                context.put("couponDtoList", couponDtoList);
-            }
+            Api.limitGood.addAll(goods.stream().filter(GoodDto::getIsLimited).collect(Collectors.toList()));
             return true;
         } catch (JSONException e) {
             print(false, "【失败】请求过快被风控，请调整参数");
@@ -624,6 +610,7 @@ public class Api {
                                 goodDto.setQuantity("1");
                                 goodDto.setStoreId(good.getStr("storeId"));
                                 goodDto.setPrice(price);
+                                goodDto.setIsLimited(true);
                                 goodDtos.add(goodDto);
                                 System.out.println(good.getStr("title") + " 价格：" + price + "元 剩余库存：" + stockQuantity + "\n" + good.getStr("subTitle"));
                             } else {
@@ -715,7 +702,6 @@ public class Api {
             if (couponDtoList.isEmpty()) {
                 return null;
             }
-            context.put("couponDtoList", couponDtoList);
             return couponDtoList;
         } catch (Exception e) {
             e.printStackTrace();

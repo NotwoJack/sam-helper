@@ -2,9 +2,11 @@ import cn.hutool.core.util.RandomUtil;
 
 import java.util.*;
 
+
 /**
  * 保供套餐抢购模式 可长时间运行
  */
+@Deprecated
 public class GuaranteeSentinel {
 
     private static void sleep(int millis) {
@@ -29,7 +31,6 @@ public class GuaranteeSentinel {
         }
 
         Api.init("2");
-        List<CouponDto> couponList = Api.getCouponList();
 
         AddressDto addressDto = null;
         while (addressDto == null) {
@@ -39,6 +40,12 @@ public class GuaranteeSentinel {
                 Scanner scanner = new Scanner(System.in);
                 addressDto = addressDtoList.get(scanner.nextInt());
             }
+            sleep(RandomUtil.randomInt(sleepMillisMin, sleepMillisMax));
+        }
+
+        List<CouponDto> couponList = null;
+        while (couponList == null){
+            couponList = Api.getCouponList();
             sleep(RandomUtil.randomInt(sleepMillisMin, sleepMillisMax));
         }
 
@@ -53,7 +60,6 @@ public class GuaranteeSentinel {
             sleep(RandomUtil.randomInt(sleepMillisMin, sleepMillisMax));
         }
 
-        List<GoodDto> saveGoodList = new ArrayList<>();
         while (true) {
             try {
                 sleep(RandomUtil.randomInt(sleepMillisMin, sleepMillisMax));
@@ -65,13 +71,13 @@ public class GuaranteeSentinel {
                 }
                 if (goodDtos == null) {
                     continue;
-                } else if (saveGoodList.containsAll(goodDtos)) {
+                } else if (Api.limitGood.containsAll(goodDtos)) {
                     System.out.println("全部商品都已经下单");
                     continue;
                 }
 
                 Boolean addFlag = null;
-                goodDtos.removeAll(saveGoodList);
+                goodDtos.removeAll(Api.limitGood);
                 if (!goodDtos.isEmpty()) {
                     for (int i = 0; i < loopTryCount && addFlag == null; i++) {
                         addFlag = Api.addCartGoodsInfo(goodDtos);
@@ -84,9 +90,9 @@ public class GuaranteeSentinel {
 
                 for (int i = 0; i < loopTryCount; i++) {
                     for (GoodDto goodDto : goodDtos) {
-                        if (Api.commitPay(Arrays.asList(goodDto), capacityData, addressDto, storeDetail, (List<CouponDto>) Api.context.get("couponDtoList"))) {
+                        if (Api.commitPay(Arrays.asList(goodDto), capacityData, addressDto, storeDetail, couponList)) {
                             Api.play("保供套餐，下单成功，下单金额：" + Api.context.get("amount"));
-                            saveGoodList.add(goodDto);
+                            Api.limitGood.add(goodDto);
                             goodDtos.remove(goodDto);
                         }
                         sleep(RandomUtil.randomInt(sleepMillisMin, sleepMillisMax));
