@@ -40,11 +40,7 @@ public class Api {
                 context.put("deliveryType", "1");
                 context.put("cartDeliveryType", "1");
                 context.put("storeType", 4);
-            } else if ("2".equals(deliveryType)) {
-                context.put("deliveryType", "2");
-                context.put("cartDeliveryType", "2");
-                context.put("storeType", 2);
-            } else if ("3".equals(deliveryType)) {
+            } else if ("2".equals(deliveryType) || "3".equals(deliveryType)) {
                 context.put("deliveryType", "2");
                 context.put("cartDeliveryType", "2");
                 context.put("storeType", 2);
@@ -226,13 +222,13 @@ public class Api {
             //对于只有一个时间段段配送直接预判处理
             if (capcityResponseList.size() == 1) {
                 JSONArray list = capcityResponseList.getJSONObject(0).getJSONArray("list");
-//                if (list.size() == 1) {
-                JSONObject time = list.getJSONObject(0);
-                map.put("startRealTime", time.get("startRealTime"));
-                map.put("endRealTime", time.get("endRealTime"));
-                print(true, "【成功】单一配送时间，预处理:" + capcityResponseList.getJSONObject(0).getStr("strDate") + " " + time.getStr("startTime") + " -- " + time.getStr("endTime"));
-                return map;
-//                }
+                if (list.size() == 1) {
+                    JSONObject time = list.getJSONObject(0);
+                    map.put("startRealTime", time.get("startRealTime"));
+                    map.put("endRealTime", time.get("endRealTime"));
+                    print(true, "【成功】单一配送时间，预处理:" + capcityResponseList.getJSONObject(0).getStr("strDate") + " " + time.getStr("startTime") + " -- " + time.getStr("endTime"));
+                    return map;
+                }
             }
 
             for (int i = 0; i < capcityResponseList.size(); i++) {
@@ -602,7 +598,7 @@ public class Api {
                                     price = priceInfo.getDouble("price") / 100;
                                 }
                             }
-                            if (stockQuantity >= 0) {
+                            if (stockQuantity > 0) {
                                 GoodDto goodDto = new GoodDto();
                                 goodDto.setSpuId(good.getStr("spuId"));
                                 goodDto.setQuantity("1");
@@ -689,13 +685,12 @@ public class Api {
             JSONArray couponList = object.getJSONObject("data").getJSONArray("couponInfoList");
             List<CouponDto> couponDtoList = new ArrayList<>();
             for (int i = 0; i < couponList.size(); i++) {
-                if (couponList.getJSONObject(i).getInt("couponType") == 1) {
-                    CouponDto couponDto = new CouponDto();
-                    couponDto.setCondition(Integer.parseInt(couponList.getJSONObject(i).getJSONObject("promotion").getJSONObject("condition").getStr("value")) / 100);
-                    couponDto.setDiscount(Integer.parseInt(couponList.getJSONObject(i).getJSONObject("promotion").getJSONObject("discount").getStr("value")) / 100);
-                    couponDto.setRuleId(couponList.getJSONObject(i).getStr("ruleId"));
-                    couponDtoList.add(couponDto);
-                }
+                CouponDto couponDto = new CouponDto();
+                couponDto.setCondition(Integer.parseInt(couponList.getJSONObject(i).getJSONObject("promotion").getJSONObject("condition").getStr("value")) / 100);
+                couponDto.setDiscount(Integer.parseInt(couponList.getJSONObject(i).getJSONObject("promotion").getJSONObject("discount").getStr("value")) / 100);
+                couponDto.setRuleId(couponList.getJSONObject(i).getStr("ruleId"));
+                couponDtoList.add(couponDto);
+
             }
             if (couponDtoList.isEmpty()) {
                 return null;
