@@ -49,7 +49,6 @@ public class Api {
                 context.put("cartDeliveryType", "2");
                 context.put("storeType", 2);
             }
-            context.put("limitedGood", new ArrayList<GoodDto>());
             return true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -135,8 +134,8 @@ public class Api {
             Map<String, Object> map = new HashMap<>();
             JSONObject data = object.getJSONObject("data");
             map.put("addressId", data.getStr("addressId"));
-            context.put("latitude", data.getStr("latitude"));
-            context.put("longitude", data.getStr("longitude"));
+//            context.put("latitude", data.getStr("latitude"));
+//            context.put("longitude", data.getStr("longitude"));
             print(true, "【成功】获取收货地址"
                     + " 收货地址：" + data.getStr("cityName") + data.getStr("districtName") + data.getStr("detailAddress")
                     + " 收货人：" + data.getStr("name") + " 手机号：" + data.getStr("phone"));
@@ -351,8 +350,7 @@ public class Api {
                     )) {
                         GoodDto goodDto = new GoodDto();
                         goodDto.setSpuId(good.getStr("spuId"));
-                        List<GoodDto> limitedGood = (List<GoodDto>) context.get("limitedGood");
-                        if (limitedGood != null && limitedGood.contains(goodDto)) {
+                        if (Api.limitGood.contains(goodDto)) {
                             break;
                         }
                         if (good.getInt("quantity") >= good.getInt("stockQuantity")) {
@@ -702,6 +700,8 @@ public class Api {
             if (couponDtoList.isEmpty()) {
                 return null;
             }
+
+            print(true, "【成功】获取优惠卷，共计" + couponDtoList.size() + "张");
             return couponDtoList;
         } catch (Exception e) {
             e.printStackTrace();
