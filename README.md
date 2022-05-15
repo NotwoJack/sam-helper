@@ -33,7 +33,7 @@ https://github.com/robGoods/sams
 Mac 微信小程序 浦东 全城送 微信支付
 
 # 更新记录
-## 2022.05.14
+## 2022.05.15
 1. 将保供套餐捡漏模式整合进哨兵主程序（在UserConfig中的deliveryType设置为3）
 2. 添加收货地址选择功能
 3. 优化优惠卷功能
