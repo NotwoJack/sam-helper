@@ -19,9 +19,9 @@ public class Sentinel {
     public static void main(String[] args) {
 
         //执行任务请求间隔时间最小值
-        int sleepMillisMin = 400;
+        int sleepMillisMin = 500;
         //执行任务请求间隔时间最大值
-        int sleepMillisMax = 800;
+        int sleepMillisMax = 1000;
 
         //单轮轮询时请求异常（服务器高峰期限流策略）尝试次数
         int loopTryCount = 10;
