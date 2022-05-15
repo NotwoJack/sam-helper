@@ -362,8 +362,8 @@ public class Api {
                         }
                         goodDto.setStoreId(good.getStr("storeId"));
                         goodDto.setWeight(good.getDouble("weight"));
-                        goodDto.setPrice(Double.parseDouble(good.getStr("price")) / 100);
-                        amount = amount + (Double.parseDouble(goodDto.getQuantity()) * goodDto.getPrice());
+                        goodDto.setPrice(new BigDecimal(good.getStr("price")).divide(new BigDecimal("100")).doubleValue());
+                        amount = BigDecimal.valueOf(amount).add(BigDecimal.valueOf(goodDto.getPrice()).multiply(new BigDecimal(goodDto.getQuantity()))).doubleValue();
                         goodDtos.add(goodDto);
                     }
                 }
@@ -447,7 +447,7 @@ public class Api {
 
             Double amount = 0.0;
             for (GoodDto good : goods) {
-                amount = amount + good.getPrice() * Integer.parseInt(good.getQuantity());
+                amount = BigDecimal.valueOf(amount).add(BigDecimal.valueOf(good.getPrice()).multiply(new BigDecimal(good.getQuantity()))).doubleValue();
             }
             List<Map> couponList = new ArrayList<>();
             if (UserConfig.coupon && !couponDtoList.isEmpty()) {
@@ -534,7 +534,7 @@ public class Api {
                     while (iterator.hasNext()) {
                         JSONObject priceInfo = (JSONObject) iterator.next();
                         if (priceInfo.getInt("priceType") == 4) {
-                            price = priceInfo.getDouble("price") / 100;
+                            price = new BigDecimal(priceInfo.getStr("price")).divide(new BigDecimal("100")).doubleValue();
                         }
                     }
                     System.out.println(good.getStr("title") + " 价格：" + price + " 剩余库存：" + stockQuantity + "\n" + good.getStr("subTitle"));
@@ -595,7 +595,7 @@ public class Api {
                             while (iterator.hasNext()) {
                                 JSONObject priceInfo = (JSONObject) iterator.next();
                                 if (priceInfo.getInt("priceType") == 4) {
-                                    price = priceInfo.getDouble("price") / 100;
+                                    price = new BigDecimal(priceInfo.getStr("price")).divide(new BigDecimal("100")).doubleValue();
                                 }
                             }
                             if (stockQuantity > 0) {
