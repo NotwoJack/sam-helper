@@ -11,30 +11,27 @@ https://github.com/robGoods/sams
 
 抢单不易，请勿用于商业牟利。
 
-
 # 简易说明
 
-8点极速达：提前一天先加好购物车，然后运行Sentinel，记得修改UserConfig中的deliveryType。
+8点极速达：提前一天先加好购物车，修改UserConfig中的deliveryType，然后运行Sentinel。
 
-11点保供套餐：提前运行GuaranteeSentinel即可。
+11点保供套餐：修改UserConfig中的deliveryType，提前运行Sentinel即可。
 
-14点全城送：提前一天加好购物车，然后运行Sentinel，记得修改UserConfig中的deliveryType。
+14点全城送：加好购物车，修改UserConfig中的deliveryType，然后运行Sentinel。
 
-# 使用说明
-哨兵捡漏（Sentinel）：设置好需要抢购的模式，提前将商品加入购物车，程序检测是否达到目标金额，自动选择最近配送时间并下单。
+下单成功后去app付款
 
-限购商品，提交数量不超过限购值，极速达超重商品自动拆分下单。
-
-~~保供套餐捡漏（GuaranteeSentinel）：自动检测保供套餐是否上架，自动将上架的保供套餐加入购物车并下单。已经下单过的套餐不会重复下单。~~
-
-程序端：根据抓包数据，填写UserConfig文件中的变量，运行测试（AplicationTest）查看能否正确获得购物车信息。
-
-手机端：app上添加商品至购物车，确认下单地址，下单成功后进行付款。
-
-电脑端：微信小程序，抓包接口数据。以及运行程序。
+# 功能特色
+1. 哨兵捡漏（Sentinel）：设置好需要抢购的模式，提前将商品加入购物车，程序检测是否达到目标金额，自动选择最近配送时间并下单。
+2. 对于限购商品，依据购物车数量，提交订单时候商品数量不超过限购值。
+3. 极速达超重商品自动拆分下单。
+4. 保供商品拆分为单个下单，并支持白名单。
+5. 自动使用优惠卷。
+6. 集成bark和server酱的推送提醒。
+7. 支持自选收货地址。
 
 # 抓包说明
-使用抓包软件，mac下charles win下fiddler，抓取山姆小程序打开购物车触发的这个接口
+使用抓包软件，mac下charles，win下fiddler，抓取山姆微信小程序打开购物车触发的这个接口
 
 ![headers](https://github.com/NotwoJack/sam-helper/blob/main/image/headers.png)
 
@@ -45,7 +42,7 @@ Mac 微信小程序 浦东 全城送 微信支付
 ## 2022.05.15
 1. 将保供套餐捡漏模式整合进哨兵主程序（在UserConfig中的deliveryType设置为3）
 2. 添加收货地址选择功能
-3. 优化优惠卷功能
+3. 优化优惠卷功能，现支持全部种类优惠券
 
 ## 2022.05.10
 1. 恢复哨兵模式下的全城送捡漏模式
