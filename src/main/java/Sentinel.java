@@ -19,7 +19,7 @@ public class Sentinel {
     public static void main(String[] args) {
 
         //执行任务请求间隔时间最小值
-        int sleepMillisMin = 400;
+        int sleepMillisMin = 500;
         //执行任务请求间隔时间最大值
         int sleepMillisMax = 800;
 
@@ -122,7 +122,7 @@ public class Sentinel {
 
                 //极速达超重 拆单处理
                 List<List<GoodDto>> orderGoodList = new ArrayList<>();
-                if ("1".equals(Api.context.get("deliveryType"))) {
+                if ("1".equals(UserConfig.deliveryType)) {
                     Double totalWeight = 0.0;
                     Integer flag = 0;
                     for (int j = 0; j < goodDtos.size(); j++) {
@@ -138,20 +138,20 @@ public class Sentinel {
                             orderGoodList.add(orderGood);
                         }
                     }
-                } else if ("2".equals(Api.context.get("deliveryType"))) {
+                } else if ("2".equals(UserConfig.deliveryType)) {
                     orderGoodList.add(goodDtos);
-                } else if ("3".equals(Api.context.get("deliveryType"))) {
+                } else if ("3".equals(UserConfig.deliveryType)) {
                     goodDtos.forEach(goodDto -> orderGoodList.add(Arrays.asList(goodDto)));
                 }
 
                 for (List<GoodDto> orderGood : orderGoodList) {
                     for (int i = 0; i < loopTryCount; i++) {
                         if (Api.commitPay(orderGood, capacityData, addressDto, storeDetail, couponList)) {
-                            if ("1".equals(Api.context.get("deliveryType"))) {
+                            if ("1".equals(UserConfig.deliveryType)) {
                                 Api.play("极速达，下单成功,下单金额：" + Api.context.get("amount"));
-                            } else if ("2".equals(Api.context.get("deliveryType"))) {
+                            } else if ("2".equals(UserConfig.deliveryType)) {
                                 Api.play("全城配，下单成功,下单金额：" + Api.context.get("amount"));
-                            } else if ("3".equals(Api.context.get("deliveryType"))) {
+                            } else if ("3".equals(UserConfig.deliveryType)) {
                                 Api.play("保供套餐，下单成功,下单金额：" + Api.context.get("amount"));
                             }
                             break;

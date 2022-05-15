@@ -40,11 +40,7 @@ public class Api {
                 context.put("deliveryType", "1");
                 context.put("cartDeliveryType", "1");
                 context.put("storeType", 4);
-            } else if ("2".equals(deliveryType)) {
-                context.put("deliveryType", "2");
-                context.put("cartDeliveryType", "2");
-                context.put("storeType", 2);
-            } else if ("3".equals(deliveryType)) {
+            } else if ("2".equals(deliveryType) || "3".equals(deliveryType)) {
                 context.put("deliveryType", "2");
                 context.put("cartDeliveryType", "2");
                 context.put("storeType", 2);
@@ -602,7 +598,7 @@ public class Api {
                                     price = priceInfo.getDouble("price") / 100;
                                 }
                             }
-                            if (stockQuantity >= 0) {
+                            if (stockQuantity > 0) {
                                 GoodDto goodDto = new GoodDto();
                                 goodDto.setSpuId(good.getStr("spuId"));
                                 goodDto.setQuantity("1");
@@ -689,13 +685,12 @@ public class Api {
             JSONArray couponList = object.getJSONObject("data").getJSONArray("couponInfoList");
             List<CouponDto> couponDtoList = new ArrayList<>();
             for (int i = 0; i < couponList.size(); i++) {
-                if (couponList.getJSONObject(i).getInt("couponType") == 1) {
-                    CouponDto couponDto = new CouponDto();
-                    couponDto.setCondition(Integer.parseInt(couponList.getJSONObject(i).getJSONObject("promotion").getJSONObject("condition").getStr("value")) / 100);
-                    couponDto.setDiscount(Integer.parseInt(couponList.getJSONObject(i).getJSONObject("promotion").getJSONObject("discount").getStr("value")) / 100);
-                    couponDto.setRuleId(couponList.getJSONObject(i).getStr("ruleId"));
-                    couponDtoList.add(couponDto);
-                }
+                CouponDto couponDto = new CouponDto();
+                couponDto.setCondition(Integer.parseInt(couponList.getJSONObject(i).getJSONObject("promotion").getJSONObject("condition").getStr("value")) / 100);
+                couponDto.setDiscount(Integer.parseInt(couponList.getJSONObject(i).getJSONObject("promotion").getJSONObject("discount").getStr("value")) / 100);
+                couponDto.setRuleId(couponList.getJSONObject(i).getStr("ruleId"));
+                couponDtoList.add(couponDto);
+
             }
             if (couponDtoList.isEmpty()) {
                 return null;
