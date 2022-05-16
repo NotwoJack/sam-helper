@@ -692,10 +692,6 @@ public class Api {
                 couponDtoList.add(couponDto);
 
             }
-            if (couponDtoList.isEmpty()) {
-                return null;
-            }
-
             print(true, "【成功】获取优惠卷，共计" + couponDtoList.size() + "张");
             return couponDtoList;
         } catch (Exception e) {
