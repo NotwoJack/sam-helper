@@ -313,6 +313,7 @@ public class Api {
     public static List<GoodDto> getCart(Map<String, Object> storeDetail) {
         try {
             HttpRequest httpRequest = HttpUtil.createPost("https://api-sams.walmartmobile.cn/api/v1/sams/trade/cart/getUserCart");
+            httpRequest.disableCookie();
             httpRequest.addHeaders(UserConfig.getHeaders());
             Map<String, Object> request = UserConfig.getIdInfo();
 
