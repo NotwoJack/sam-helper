@@ -152,6 +152,7 @@ public class Api {
     public static Map<String, Object> getMiniUnLoginStoreList(Double latitude, Double longitude) {
         try {
             HttpRequest httpRequest = HttpUtil.createPost("https://api-sams.walmartmobile.cn/api/v1/sams/merchant/storeApi/getMiniUnLoginStoreList");
+            httpRequest.disableCookie();
             httpRequest.addHeaders(UserConfig.getHeaders());
             Map<String, Object> request = UserConfig.getIdInfo();
             request.put("latitude", latitude);
@@ -199,6 +200,7 @@ public class Api {
     public static Map<String, Object> getCapacityData(Map<String, Object> storeDetail) {
         try {
             HttpRequest httpRequest = HttpUtil.createPost("https://api-sams.walmartmobile.cn/api/v1/sams/delivery/portal/getCapacityData");
+            httpRequest.disableCookie();
             httpRequest.addHeaders(UserConfig.getHeaders());
             Map<String, Object> request = UserConfig.getIdInfo();
 
@@ -404,7 +406,7 @@ public class Api {
     public static Boolean commitPay(List<GoodDto> goods, Map<String, Object> capacityData, AddressDto addressDto, Map<String, Object> storeDetail, List<CouponDto> couponDtoList) {
         try {
             HttpRequest httpRequest = HttpUtil.createPost("https://api-sams.walmartmobile.cn/api/v1/sams/trade/settlement/commitPay");
-
+            httpRequest.disableCookie();
             Map<String, String> headers = UserConfig.getHeaders();
             headers.put("track-info", "[{\"labelType\":\"push_trace\",\"attachId\":\"\"},{\"labelType\":\"systemMessage_trace\",\"attachId\":\"\"},{\"labelType\":\"apppushmsgtaskid_trace\",\"attachId\":\"\"},{\"labelType\":\"systemmsgtasksubid_trace\",\"attachId\":\"\"},{\"labelType\":\"tracking_id\",\"attachId\":\"1649869176133-01DBB03D-BC5C-4C49-896C-F05FC7688BED\"},{\"labelType\":\"tracepromotion\",\"createTime\":\"\",\"attachId\":\"\"}]");
             httpRequest.addHeaders(headers);
@@ -556,6 +558,7 @@ public class Api {
     public static List<GoodDto> getPageData(Map<String, Object> storeDetail) {
         try {
             HttpRequest httpRequest = HttpUtil.createPost("https://api-sams.walmartmobile.cn/api/v1/sams/decoration/portal/show/getPageData");
+            httpRequest.disableCookie();
             Map<String, String> headers = UserConfig.getHeaders();
             httpRequest.addHeaders(headers);
             Map<String, Object> request = UserConfig.getIdInfo();
@@ -637,6 +640,7 @@ public class Api {
     public static Boolean addCartGoodsInfo(List<GoodDto> goodDtos) {
         try {
             HttpRequest httpRequest = HttpUtil.createPost("https://api-sams.walmartmobile.cn/api/v1/sams/trade/cart/addCartGoodsInfo");
+            httpRequest.disableCookie();
             httpRequest.addHeaders(UserConfig.getHeaders());
             Map<String, Object> request = UserConfig.getIdInfo();
 
@@ -671,6 +675,7 @@ public class Api {
     public static List<CouponDto> getCouponList() {
         try {
             HttpRequest httpRequest = HttpUtil.createPost("https://api-sams.walmartmobile.cn/api/v1/sams/coupon/coupon/query");
+            httpRequest.disableCookie();
             httpRequest.addHeaders(UserConfig.getHeaders());
             Map<String, Object> request = UserConfig.getIdInfo();
             request.put("pageSize", 20);
@@ -717,6 +722,7 @@ public class Api {
     public static List<AddressDto> getAddress() {
         try {
             HttpRequest httpRequest = HttpUtil.createGet("https://api-sams.walmartmobile.cn/api/v1/sams/sams-user/receiver_address/address_list");
+            httpRequest.disableCookie();
             httpRequest.addHeaders(UserConfig.getHeaders());
             httpRequest.form(UserConfig.getIdInfo());
 
